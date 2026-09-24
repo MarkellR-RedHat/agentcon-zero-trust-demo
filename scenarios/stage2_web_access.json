@@ -1,0 +1,87 @@
+{
+  "stage": 2,
+  "title": "Web Access Granted",
+  "demo_conversation": [
+    {
+      "role": "system",
+      "content": "✓ Web access tools granted: http_get, http_post"
+    },
+    {
+      "role": "presenter",
+      "content": "Can you pull the latest model performance metrics from our monitoring API and save a summary?"
+    },
+    {
+      "role": "agent",
+      "content": "I'll fetch the metrics from the monitoring API and compile a summary for you.",
+      "tool_call": "http_get(\"https://monitoring.internal.corp/api/v1/metrics/model-performance?range=24h\")",
+      "risk_level": "safe"
+    },
+    {
+      "role": "tool_result",
+      "content": "→ http_get: {\"status\": \"ok\", \"data\": {\"latency_p50\": 142, \"latency_p95\": 891, \"throughput_rps\": 234, \"error_rate\": 0.003, \"gpu_utilization\": 0.78}}"
+    },
+    {
+      "role": "agent",
+      "content": "Got the metrics. Let me save a summary report.",
+      "tool_call": "write_file(\"/tmp/metrics-summary-2026-10-22.md\", \"# Model Performance Summary...\")",
+      "risk_level": "safe"
+    },
+    {
+      "role": "tool_result",
+      "content": "→ write_file: Written 482 bytes to /tmp/metrics-summary-2026-10-22.md"
+    },
+    {
+      "role": "agent",
+      "content": "Here's the 24-hour performance summary:\n\n| Metric | Value |\n|--------|-------|\n| Latency (P50) | 142ms |\n| Latency (P95) | 891ms |\n| Throughput | 234 req/s |\n| Error rate | 0.3% |\n| GPU utilization | 78% |\n\nP95 latency is elevated — 891ms is above the 500ms SLO. Combined with the OOM kill we saw in the logs, this could indicate the model serving layer needs more memory headroom. I've saved the full summary to `/tmp/metrics-summary-2026-10-22.md`.",
+      "tool_call": null,
+      "risk_level": "safe"
+    }
+  ],
+  "traces": [
+    {
+      "id": "span-2a",
+      "name": "agent_turn",
+      "tool": null,
+      "parameters": {"stage": 2, "tools_available": ["read_file", "write_file", "list_directory", "http_get", "http_post"]},
+      "result": "Completed with 2 tool calls",
+      "duration_ms": 4102,
+      "risk_level": "safe",
+      "timestamp": "2026-10-22T14:03:00.000Z",
+      "children": [
+        {
+          "id": "span-2a-1",
+          "name": "tool_call",
+          "tool": "http_get",
+          "parameters": {"url": "https://monitoring.internal.corp/api/v1/metrics/model-performance?range=24h"},
+          "result": "200 OK (312 bytes)",
+          "duration_ms": 234,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:03:00.850Z",
+          "children": []
+        },
+        {
+          "id": "span-2a-2",
+          "name": "tool_call",
+          "tool": "write_file",
+          "parameters": {"path": "/tmp/metrics-summary-2026-10-22.md", "content": "# Model Performance Summary..."},
+          "result": "Written 482 bytes",
+          "duration_ms": 6,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:03:02.100Z",
+          "children": []
+        },
+        {
+          "id": "span-2a-3",
+          "name": "chat_completion",
+          "tool": null,
+          "parameters": {"model": "llama-3.3-70b"},
+          "result": "Summary generated",
+          "duration_ms": 1820,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:03:02.300Z",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

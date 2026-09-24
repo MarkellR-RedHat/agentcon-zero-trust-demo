@@ -1,0 +1,50 @@
+{
+  "stage": 0,
+  "title": "Sandboxed — Chat Only",
+  "demo_conversation": [
+    {
+      "role": "presenter",
+      "content": "Can you check the server logs from yesterday and tell me if there were any errors?"
+    },
+    {
+      "role": "agent",
+      "content": "I'd like to help you check the server logs, but I don't currently have access to any file system tools. I can only respond based on what I already know.\n\nTo check yesterday's server logs, I would need file read access to look at files like `/var/log/syslog` or your application's log directory.\n\nWould you like to grant me file access so I can help with this?",
+      "tool_call": null,
+      "risk_level": "safe"
+    },
+    {
+      "role": "presenter",
+      "content": "What about checking our monitoring dashboard online?"
+    },
+    {
+      "role": "agent",
+      "content": "I also don't have web access, so I can't reach any external monitoring dashboards or APIs right now.\n\nI can help you think through what to look for — common error patterns, log search strategies, or what metrics might indicate the issue — but I can't directly access any systems in my current configuration.",
+      "tool_call": null,
+      "risk_level": "safe"
+    }
+  ],
+  "traces": [
+    {
+      "id": "span-0a",
+      "name": "chat_completion",
+      "tool": null,
+      "parameters": {"model": "llama-3.3-70b", "temperature": 0.7, "max_tokens": 512},
+      "result": "Response generated (no tool calls)",
+      "duration_ms": 847,
+      "risk_level": "safe",
+      "timestamp": "2026-10-22T14:00:01.234Z",
+      "children": []
+    },
+    {
+      "id": "span-0b",
+      "name": "chat_completion",
+      "tool": null,
+      "parameters": {"model": "llama-3.3-70b", "temperature": 0.7, "max_tokens": 512},
+      "result": "Response generated (no tool calls)",
+      "duration_ms": 923,
+      "risk_level": "safe",
+      "timestamp": "2026-10-22T14:00:15.891Z",
+      "children": []
+    }
+  ]
+}

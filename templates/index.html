@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero Trust Agents</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1>Zero Trust Agents</h1>
+            <span class="subtitle">Red Teaming Your Way to Safe AI</span>
+        </div>
+        <div class="header-center">
+            <div class="stage-indicator">
+                <span class="stage-label">Stage</span>
+                <span class="stage-number" id="stage-number">0</span>
+                <span class="stage-name" id="stage-name">Sandboxed</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="risk-gauge">
+                <span class="risk-label">Risk Score</span>
+                <div class="risk-bar-container">
+                    <div class="risk-bar" id="risk-bar"></div>
+                </div>
+                <span class="risk-value" id="risk-value">0%</span>
+            </div>
+            <button class="btn btn-reset" id="btn-reset" title="Reset Demo">↺</button>
+        </div>
+    </header>
+
+    <main>
+        <aside class="panel-left">
+            <div class="panel-section">
+                <h3>Agent Access Level</h3>
+                <div class="tools-list" id="tools-list">
+                    <div class="tool-item locked" data-tool="read_file">
+                        <span class="tool-icon">📄</span>
+                        <span class="tool-name">read_file</span>
+                        <span class="tool-status">locked</span>
+                    </div>
+                    <div class="tool-item locked" data-tool="write_file">
+                        <span class="tool-icon">📝</span>
+                        <span class="tool-name">write_file</span>
+                        <span class="tool-status">locked</span>
+                    </div>
+                    <div class="tool-item locked" data-tool="list_directory">
+                        <span class="tool-icon">📁</span>
+                        <span class="tool-name">list_directory</span>
+                        <span class="tool-status">locked</span>
+                    </div>
+                    <div class="tool-item locked" data-tool="http_get">
+                        <span class="tool-icon">🌐</span>
+                        <span class="tool-name">http_get</span>
+                        <span class="tool-status">locked</span>
+                    </div>
+                    <div class="tool-item locked" data-tool="http_post">
+                        <span class="tool-icon">📤</span>
+                        <span class="tool-name">http_post</span>
+                        <span class="tool-status">locked</span>
+                    </div>
+                    <div class="tool-item locked" data-tool="execute_code">
+                        <span class="tool-icon">⚡</span>
+                        <span class="tool-name">execute_code</span>
+                        <span class="tool-status">locked</span>
+                    </div>
+                    <div class="tool-item locked" data-tool="run_shell">
+                        <span class="tool-icon">💻</span>
+                        <span class="tool-name">run_shell</span>
+                        <span class="tool-status">locked</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Actions</h3>
+                <div class="actions-list">
+                    <button class="btn btn-grant" id="btn-stage1" data-stage="1">
+                        <span class="btn-icon">📄</span> Grant File Access
+                    </button>
+                    <button class="btn btn-grant" id="btn-stage2" data-stage="2" disabled>
+                        <span class="btn-icon">🌐</span> Grant Web Access
+                    </button>
+                    <button class="btn btn-grant" id="btn-stage3" data-stage="3" disabled>
+                        <span class="btn-icon">⚡</span> Grant Code Execution
+                    </button>
+                    <button class="btn btn-redteam" id="btn-redteam" disabled>
+                        <span class="btn-icon">🔴</span> Run Red Team
+                    </button>
+                    <button class="btn btn-narrative" id="btn-stage4" data-stage="4" disabled>
+                        <span class="btn-icon">⚠</span> The Guardrails Paradox
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Risk Breakdown</h3>
+                <div class="risk-breakdown">
+                    <div class="risk-category">
+                        <span class="risk-cat-label">File</span>
+                        <div class="risk-cat-bar-container">
+                            <div class="risk-cat-bar" id="risk-file"></div>
+                        </div>
+                        <span class="risk-cat-value" id="risk-file-val">0%</span>
+                    </div>
+                    <div class="risk-category">
+                        <span class="risk-cat-label">Web</span>
+                        <div class="risk-cat-bar-container">
+                            <div class="risk-cat-bar" id="risk-web"></div>
+                        </div>
+                        <span class="risk-cat-value" id="risk-web-val">0%</span>
+                    </div>
+                    <div class="risk-category">
+                        <span class="risk-cat-label">Code</span>
+                        <div class="risk-cat-bar-container">
+                            <div class="risk-cat-bar" id="risk-code"></div>
+                        </div>
+                        <span class="risk-cat-value" id="risk-code-val">0%</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="panel-center">
+            <div class="conversation" id="conversation">
+                <div class="welcome-message">
+                    <h2>Zero Trust Agent Demo</h2>
+                    <p>This agent starts with <strong>zero access</strong>. Grant tools progressively and red team its behavior at each stage.</p>
+                    <p>Click <strong>Grant File Access</strong> to begin.</p>
+                </div>
+            </div>
+        </section>
+
+        <aside class="panel-right">
+            <div class="panel-section">
+                <h3>Trace Viewer</h3>
+                <div class="trace-viewer" id="trace-viewer">
+                    <div class="trace-empty">No traces yet. Advance a stage to see agent activity.</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <div class="stage-timeline">
+            <div class="timeline-step active" data-stage="0">
+                <div class="timeline-dot"></div>
+                <span>Sandboxed</span>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-step" data-stage="1">
+                <div class="timeline-dot"></div>
+                <span>File Access</span>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-step" data-stage="2">
+                <div class="timeline-dot"></div>
+                <span>Web Access</span>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-step" data-stage="3">
+                <div class="timeline-dot"></div>
+                <span>Code Exec</span>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-step" data-stage="4">
+                <div class="timeline-dot"></div>
+                <span>Guardrails Paradox</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

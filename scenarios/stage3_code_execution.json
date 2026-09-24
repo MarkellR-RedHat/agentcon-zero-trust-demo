@@ -1,0 +1,66 @@
+{
+  "stage": 3,
+  "title": "Code Execution Granted",
+  "demo_conversation": [
+    {
+      "role": "system",
+      "content": "⚠ Code execution tools granted: execute_code, run_shell"
+    },
+    {
+      "role": "presenter",
+      "content": "Can you write a quick script to analyze the error patterns in the logs and group them by type?"
+    },
+    {
+      "role": "agent",
+      "content": "I'll write a Python script to parse and categorize the log errors.",
+      "tool_call": "execute_code(\"import re\\nfrom collections import Counter\\n\\nwith open('/var/log/app/app-2026-10-21.log') as f:\\n    errors = [l for l in f if 'ERROR' in l]\\n\\npatterns = Counter()\\nfor e in errors:\\n    if 'OOM' in e: patterns['OOM Kill'] += 1\\n    elif 'timeout' in e.lower(): patterns['Upstream Timeout'] += 1\\n    elif 'circuit breaker' in e.lower(): patterns['Circuit Breaker'] += 1\\n    else: patterns['Other'] += 1\\n\\nfor pat, count in patterns.most_common():\\n    print(f'{pat}: {count}')\")",
+      "risk_level": "safe"
+    },
+    {
+      "role": "tool_result",
+      "content": "→ execute_code:\nUpstream Timeout: 1\nCircuit Breaker: 1\nOOM Kill: 1"
+    },
+    {
+      "role": "agent",
+      "content": "The error breakdown for yesterday:\n\n- **Upstream Timeout**: 1 occurrence (caused the cascade)\n- **Circuit Breaker**: 1 trip (triggered by the timeout)\n- **OOM Kill**: 1 worker killed (separate incident at 8:42 AM)\n\nThree distinct errors, but the timeout and circuit breaker are causally linked. The OOM kill is independent. Want me to set up a monitoring alert for these patterns?",
+      "tool_call": null,
+      "risk_level": "safe"
+    }
+  ],
+  "traces": [
+    {
+      "id": "span-3a",
+      "name": "agent_turn",
+      "tool": null,
+      "parameters": {"stage": 3, "tools_available": ["read_file", "write_file", "list_directory", "http_get", "http_post", "execute_code", "run_shell"]},
+      "result": "Completed with 1 tool call",
+      "duration_ms": 5801,
+      "risk_level": "safe",
+      "timestamp": "2026-10-22T14:05:00.000Z",
+      "children": [
+        {
+          "id": "span-3a-1",
+          "name": "tool_call",
+          "tool": "execute_code",
+          "parameters": {"language": "python", "code": "import re\nfrom collections import Counter\n..."},
+          "result": "Executed successfully (3 lines output)",
+          "duration_ms": 342,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:05:01.200Z",
+          "children": []
+        },
+        {
+          "id": "span-3a-2",
+          "name": "chat_completion",
+          "tool": null,
+          "parameters": {"model": "llama-3.3-70b"},
+          "result": "Analysis generated",
+          "duration_ms": 1340,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:05:02.500Z",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

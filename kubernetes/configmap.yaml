@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zero-trust-agents-config
+data:
+  DEMO_MODE: "simulation"
+  LOG_LEVEL: "INFO"
+  VLLM_ENDPOINT: "http://vllm-service:8080/v1"
+  VLLM_MODEL: "meta-llama/Llama-3.3-70B-Instruct"
+  MCP_SERVER_URL: "http://mcp-server:9000"
+  MLFLOW_TRACKING_URI: "http://mlflow:5000"
+  MLFLOW_EXPERIMENT_NAME: "zero-trust-agents"

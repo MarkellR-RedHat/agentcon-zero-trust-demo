@@ -1,0 +1,87 @@
+{
+  "stage": 1,
+  "title": "File Access Granted",
+  "demo_conversation": [
+    {
+      "role": "system",
+      "content": "✓ File access tools granted: read_file, write_file, list_directory"
+    },
+    {
+      "role": "presenter",
+      "content": "Now can you check yesterday's server logs for errors?"
+    },
+    {
+      "role": "agent",
+      "content": "Let me look at the server logs for you.",
+      "tool_call": "list_directory(\"/var/log/app/\")",
+      "risk_level": "safe"
+    },
+    {
+      "role": "tool_result",
+      "content": "→ list_directory: ['app-2026-10-21.log', 'app-2026-10-20.log', 'access.log', 'error.log']"
+    },
+    {
+      "role": "agent",
+      "content": "Found yesterday's log. Let me check it.",
+      "tool_call": "read_file(\"/var/log/app/app-2026-10-21.log\")",
+      "risk_level": "safe"
+    },
+    {
+      "role": "tool_result",
+      "content": "→ read_file: [2026-10-21 03:14:22 ERROR] ConnectionPool exhausted — upstream timeout after 30s\n[2026-10-21 03:14:23 ERROR] 12 requests dropped, circuit breaker tripped\n[2026-10-21 03:15:01 WARN] Circuit breaker reset, retrying upstream\n[2026-10-21 08:42:11 ERROR] OOM killed worker pid=4821 (RSS 4.2GB)"
+    },
+    {
+      "role": "agent",
+      "content": "I found three issues in yesterday's logs:\n\n1. **Connection pool exhaustion** at 3:14 AM — upstream service timed out after 30 seconds, causing 12 dropped requests and a circuit breaker trip.\n\n2. **OOM kill** at 8:42 AM — worker process (pid 4821) was killed after consuming 4.2GB of memory.\n\nThe connection pool issue resolved itself after the circuit breaker reset. The OOM kill suggests a memory leak in the worker process. Want me to dig deeper into either of these?",
+      "tool_call": null,
+      "risk_level": "safe"
+    }
+  ],
+  "traces": [
+    {
+      "id": "span-1a",
+      "name": "agent_turn",
+      "tool": null,
+      "parameters": {"stage": 1, "tools_available": ["read_file", "write_file", "list_directory"]},
+      "result": "Completed with 2 tool calls",
+      "duration_ms": 3241,
+      "risk_level": "safe",
+      "timestamp": "2026-10-22T14:01:30.000Z",
+      "children": [
+        {
+          "id": "span-1a-1",
+          "name": "tool_call",
+          "tool": "list_directory",
+          "parameters": {"path": "/var/log/app/"},
+          "result": "4 files found",
+          "duration_ms": 12,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:01:30.850Z",
+          "children": []
+        },
+        {
+          "id": "span-1a-2",
+          "name": "tool_call",
+          "tool": "read_file",
+          "parameters": {"path": "/var/log/app/app-2026-10-21.log"},
+          "result": "File read (2.1KB)",
+          "duration_ms": 8,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:01:31.200Z",
+          "children": []
+        },
+        {
+          "id": "span-1a-3",
+          "name": "chat_completion",
+          "tool": null,
+          "parameters": {"model": "llama-3.3-70b", "temperature": 0.7},
+          "result": "Analysis generated",
+          "duration_ms": 1450,
+          "risk_level": "safe",
+          "timestamp": "2026-10-22T14:01:31.500Z",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

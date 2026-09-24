@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zero-trust-agents-demo
+  labels:
+    app: zero-trust-agents-demo
+spec:
+  selector:
+    app: zero-trust-agents-demo
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP

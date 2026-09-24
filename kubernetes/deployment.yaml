@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zero-trust-agents-demo
+  labels:
+    app: zero-trust-agents-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zero-trust-agents-demo
+  template:
+    metadata:
+      labels:
+        app: zero-trust-agents-demo
+    spec:
+      containers:
+        - name: demo
+          image: quay.io/markellr/zero-trust-agents-demo:latest
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          env:
+            - name: DEMO_MODE
+              value: "simulation"
+            - name: PORT
+              value: "8000"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 10
