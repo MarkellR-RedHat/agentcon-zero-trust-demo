@@ -14,6 +14,9 @@ class Settings(BaseSettings):
 
     demo_mode: str = "simulation"
 
+    # Any vLLM-compatible endpoint works. Model size doesn't change
+    # the demo flow. Use Llama-3.1-8B-Instruct or Mistral-7B on
+    # smaller GPUs (A10, L4, T4, 3090).
     vllm_endpoint: str = "http://localhost:8080/v1"
     vllm_model: str = "meta-llama/Llama-3.3-70B-Instruct"
     vllm_api_key: str = ""
