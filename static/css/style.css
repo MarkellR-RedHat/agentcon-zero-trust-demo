@@ -7,28 +7,28 @@
 }
 
 :root {
-    --bg-primary: #0a0f1e;
-    --bg-secondary: rgba(20, 20, 20, 0.6);
-    --bg-tertiary: rgba(30, 30, 30, 0.5);
-    --bg-hover: rgba(40, 40, 40, 0.6);
-    --bg-solid-secondary: #141414;
-    --bg-solid-tertiary: #1e1e1e;
-    --text-primary: #e8e8e8;
-    --text-secondary: #999;
-    --text-muted: #666;
+    --bg-primary: #ffffff;
+    --bg-secondary: rgba(255, 255, 255, 0.7);
+    --bg-tertiary: rgba(245, 245, 245, 0.6);
+    --bg-hover: rgba(240, 240, 240, 0.8);
+    --bg-solid-secondary: #f5f5f5;
+    --bg-solid-tertiary: #eeeeee;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --text-muted: #888888;
     --border: rgba(238, 0, 0, 0.12);
-    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-subtle: rgba(0, 0, 0, 0.06);
     --accent: #ee0000;
     --accent2: #cc0000;
-    --accent-dim: rgba(238, 0, 0, 0.15);
-    --grad: linear-gradient(152deg, #ee0000 0%, #cc0000 47%, #ffffff 100%);
-    --grad-flow: linear-gradient(160deg, #ee0000, #cc0000, #ee0000, #ffffff, #ee0000, #cc0000, #ee0000);
-    --safe: #00c853;
-    --safe-dim: rgba(0, 200, 83, 0.15);
-    --warning: #ffd600;
-    --warning-dim: rgba(255, 214, 0, 0.15);
-    --danger: #ff1744;
-    --danger-dim: rgba(255, 23, 68, 0.15);
+    --accent-dim: rgba(238, 0, 0, 0.08);
+    --grad: linear-gradient(152deg, #ee0000 0%, #cc0000 47%, #8b0000 100%);
+    --grad-flow: linear-gradient(160deg, #ee0000, #cc0000, #ee0000, #8b0000, #ee0000, #cc0000, #ee0000);
+    --safe: #00a843;
+    --safe-dim: rgba(0, 168, 67, 0.1);
+    --warning: #c8a000;
+    --warning-dim: rgba(200, 160, 0, 0.1);
+    --danger: #d50032;
+    --danger-dim: rgba(213, 0, 50, 0.08);
     --font-mono: 'Red Hat Mono', 'SF Mono', 'Fira Code', monospace;
     --font-sans: 'Red Hat Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-display: 'Red Hat Display', sans-serif;
@@ -40,7 +40,7 @@
 
 body {
     font-family: var(--font-sans);
-    background: var(--bg-primary);
+    background: linear-gradient(135deg, #ffffff 0%, #fef5f5 25%, #fff0f0 50%, #fef5f5 75%, #ffffff 100%);
     color: var(--text-primary);
     height: 100vh;
     display: flex;
@@ -65,8 +65,7 @@ canvas#bgParticles {
     right: 24px;
     z-index: 101;
     height: clamp(28px, 3vw, 40px);
-    filter: brightness(0) invert(1);
-    opacity: 0.7;
+    opacity: 0.85;
     transition: opacity 0.3s var(--ease);
 }
 
@@ -344,8 +343,8 @@ main {
 
 .btn:hover:not(:disabled) {
     background: var(--bg-hover);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .btn:disabled {
@@ -499,14 +498,14 @@ main {
     align-self: flex-end;
     background: rgba(238, 0, 0, 0.12);
     border: 1px solid rgba(238, 0, 0, 0.25);
-    color: #fca5a5;
+    color: #7f1d1d;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
 
 .msg-agent {
     align-self: flex-start;
-    background: var(--bg-tertiary);
+    background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--border);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -609,7 +608,7 @@ main {
 }
 
 .red-team-prompt {
-    background: rgba(10, 10, 10, 0.6);
+    background: rgba(245, 245, 245, 0.6);
     border-left: 3px solid var(--warning);
     padding: 10px 14px;
     margin: 8px 0;
@@ -619,7 +618,7 @@ main {
 }
 
 .red-team-response {
-    background: rgba(10, 10, 10, 0.6);
+    background: rgba(245, 245, 245, 0.6);
     border-left: 3px solid var(--danger);
     padding: 10px 14px;
     margin: 8px 0;
@@ -647,7 +646,7 @@ main {
 .red-team-score-bar {
     width: 80px;
     height: 4px;
-    background: rgba(10, 10, 10, 0.6);
+    background: rgba(245, 245, 245, 0.6);
     border-radius: 2px;
     overflow: hidden;
 }
@@ -697,7 +696,7 @@ main {
 }
 
 .stat-card {
-    background: rgba(10, 10, 10, 0.6);
+    background: rgba(245, 245, 245, 0.6);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 16px;
@@ -862,8 +861,8 @@ footer {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.08);
+    border: 2px solid rgba(0, 0, 0, 0.08);
     transition: all 0.3s var(--ease);
 }
 
@@ -907,12 +906,12 @@ footer {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(238, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.12);
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(238, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.25);
 }
 
 .typing-indicator {
