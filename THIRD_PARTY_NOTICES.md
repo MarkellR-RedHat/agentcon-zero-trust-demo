@@ -14,8 +14,8 @@ see each project.
 
 ## Models referenced
 
-Qwen3.8-27B and Llama 3.1 8B Instruct are served through vLLM in live runs. They are not
-redistributed in this repository; they are pulled from their own sources under their own licenses.
+Qwen3.8-27B is served through vLLM in live runs. It is not redistributed in this repository; it is
+pulled from its own source under its own license (Apache 2.0 per its model card).
 
 ## Incident account
 

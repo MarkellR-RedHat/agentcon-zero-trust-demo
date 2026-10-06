@@ -69,8 +69,8 @@ RUNS_DIR=runs/2026-10-09-qwen-r1 make run
 
 ## Stack
 
-- **Agent model**: Qwen3.8-27B on an NVIDIA H200 via vLLM (`0.24.0+rhaiv.13`), tool calling on;
-  Llama 3.1 8B on a MIG slice is an optional size comparison.
+- **Agent model**: Qwen3.8-27B in BF16 on one 71 GB MIG slice of an NVIDIA H200 via vLLM
+  (`0.24.0+rhaiv.13`), tool calling on.
 - **Tools**: an MCP server exposing file, web and code tools, acting on the sandbox.
 - **Policy gate**: deterministic per-task rules (`harness/gate.py`), not a model.
 - **Tracing**: spans logged to MLflow when configured, always written to the run file.

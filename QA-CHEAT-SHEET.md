@@ -31,10 +31,10 @@ disabled. Sources are on the slide.
 anything that speaks those works. OpenShift AI is where the live run happens and where MLflow
 tracing is shown.
 
-**Does model size change the result?** The attacks land on tool use, not model smarts, so the
-pattern holds across sizes. A bigger model may refuse more on its own, which shifts counts from
-"blocked by gate" toward "refused by model" but not the need for the gate. The optional Llama 3.1
-8B track is there to show this if asked.
+**Would a different model change the result?** The attacks land on tool use, not model smarts. A
+model that refuses more on its own shifts counts from "blocked by gate" toward "refused by model,"
+but the gate is still what stops the ones it does not refuse. We measured one model, Qwen3.8-27B;
+the harness takes any OpenAI-compatible endpoint if someone wants to try another.
 
 **Where is the MLflow trace?** Every tool call, model call, and gate decision is a span. Live runs
 log them to MLflow; the guide carries screenshots. The app's own trace viewer reads the same spans

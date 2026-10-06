@@ -16,13 +16,17 @@ spec:
     spec:
       containers:
         - name: demo
-          image: quay.io/markellr/zero-trust-agents-demo:latest
+          # the presenter app in replay mode: serves the bundled run data, needs no GPU.
+          # Published by CI from main (same pattern as the PyTorch demo's backup image).
+          image: ghcr.io/markellr-redhat/agentcon-zero-trust-demo:2026.10
           ports:
             - containerPort: 8000
               protocol: TCP
           env:
             - name: DEMO_MODE
-              value: "simulation"
+              value: "replay"
+            - name: RUNS_DIR
+              value: "runs/2026-10-06-SYNTHETIC"   # point at the real run folder once imported
             - name: PORT
               value: "8000"
           resources:

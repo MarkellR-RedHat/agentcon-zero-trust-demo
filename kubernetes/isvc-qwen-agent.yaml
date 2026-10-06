@@ -36,37 +36,3 @@ spec:
             nvidia.com/mig-3g.71gb: 1
           limits:
             nvidia.com/mig-3g.71gb: 1
----
-# OPTIONAL, not needed for the talk: Llama 3.1 8B on a 35 GB MIG slice (mig-2g.35gb), to answer
-# "does model size change what the agent does". Uses the llama3_json tool parser. Skip it unless a
-# second slice is free; the 18 GB slice is too small for 8B in BF16 once the KV cache is counted.
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
-metadata:
-  name: llama8b-agent
-  annotations:
-    serving.kserve.io/deploymentMode: RawDeployment
-spec:
-  predictor:
-    minReplicas: 1
-    maxReplicas: 1
-    containers:
-      - name: kserve-container
-        image: registry.redhat.io/rhaii/vllm-cuda-rhel9@sha256:c056e61672b6aea489ad5dde0bd2f8497230f5333e87f7cf6c494eba3bfdc808
-        args:
-          - --port=8080
-          - --model=meta-llama/Llama-3.1-8B-Instruct
-          - --served-model-name=llama8b-agent
-          - --max-model-len=16384
-          - --enable-auto-tool-choice
-          - --tool-call-parser=llama3_json
-        env:
-          - name: HF_HOME
-            value: /tmp/hf_home
-        resources:
-          requests:
-            cpu: 4
-            memory: 24Gi
-            nvidia.com/mig-2g.35gb: 1
-          limits:
-            nvidia.com/mig-2g.35gb: 1

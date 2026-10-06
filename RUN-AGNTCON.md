@@ -22,9 +22,8 @@ and `kubernetes/harness-job.yaml` are the optional in-cluster variant (Path B) a
 NS=markell-agentcon
 oc project "$NS"
 
-# the agent model (Qwen3.8-27B BF16 on one 71 GB slice, tool calling on). Only the first document
-# in the file is applied; the second (Llama 8B) is optional and skipped here.
-oc apply -f <(sed -n '1,/^---$/p' kubernetes/isvc-qwen-agent.yaml | sed '$d')
+# the agent model (Qwen3.8-27B BF16 on one 71 GB slice, tool calling on)
+oc apply -f kubernetes/isvc-qwen-agent.yaml
 oc wait --for=condition=Ready "isvc/qwen-agent" --timeout=20m
 ```
 
