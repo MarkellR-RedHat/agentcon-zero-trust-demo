@@ -22,20 +22,31 @@ def test_config_has_two_lanes_and_four_stages():
     assert [s["key"] for s in c["stages"]] == ["1", "2", "3", "4"]
 
 
-def test_bare_lane_attacks_all_succeed_in_fixture():
+def test_bare_lane_lets_attacks_through():
+    # with no gate the model refuses some on its own, but not all: some reach the sandbox
     c = client.get("/api/config").json()
     bare = next(lane for lane in c["lanes"] if lane["key"] == "bare")
-    assert bare["succeeded"] == bare["total"] and bare["total"] > 0
+    assert 0 < bare["succeeded"] <= bare["total"]
 
 
-def test_scoped_lane_blocks_everything_in_fixture():
+def test_scoped_lane_lets_nothing_through():
     s = summary()["lanes"]["guarded-scoped"]["attack_totals"]
-    assert s["succeeded"] == 0 and s["blocked"] == s["total"]
+    assert s["succeeded"] == 0
 
 
-def test_paradox_recordings_flip():
-    assert client.get("/api/recording/guarded-blunt/4/forensic").json()["verdict"] == "BLOCKED"
-    assert client.get("/api/recording/guarded-scoped/4/forensic").json()["verdict"] == "PASS"
+def test_defender_job_completes_in_every_lane():
+    # the measured counterpoint to the Hugging Face paradox: the model you run does the forensic job
+    recs = summary()["recordings"]
+    for lane in ("bare", "guarded-blunt", "guarded-scoped"):
+        rec = recs.get(f"{lane}/4/forensic")
+        assert rec is not None and rec["verdict"] == "PASS", lane
+
+
+def test_totals_split_blocked_from_refused():
+    # the scoreboard's point: the gate (BLOCKED) and the model (REFUSED) are counted apart
+    for key, lane in summary()["lanes"].items():
+        t = lane["attack_totals"]
+        assert t["total"] == t["succeeded"] + t["blocked"] + t["refused"], key
 
 
 def test_recording_404_for_unknown():

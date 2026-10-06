@@ -16,10 +16,11 @@ the exfil sink and the "internal metadata" service are in-cluster fakes.
 (`harness/gate.py`): an allowed-tool set per stage, denied secret paths, read/write path prefixes,
 an egress host allowlist, and a command allowlist. Not a model, not an LLM judge.
 
-**Why does the blunt filter fail?** Two ways. It misses attacks that do not match a danger pattern
-(the package-from-a-mirror and the privilege probe get through). And it blocks the legitimate
-forensic job in stage 4 because the report quotes the attacker's payloads. Content filtering cannot
-tell intent.
+**Why does the blunt filter fail?** Two ways, both measured in the run. It misses attacks that do
+not match a danger pattern: the package-from-a-mirror and the privilege probe got through every
+time because they read like ordinary ops commands. And it blocks legitimate work: it denied the
+honest status-page check as off-list traffic. Content filtering guesses from the bytes, so it cuts
+the wrong way in both directions.
 
 **What is the Hugging Face connection?** July 2026: an autonomous agent breached Hugging Face.
 Their responders' first tools, frontier models behind commercial APIs, refused to analyze the

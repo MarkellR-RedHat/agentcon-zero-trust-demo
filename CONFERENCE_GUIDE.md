@@ -21,10 +21,13 @@ The presenter is a fixed 1920x1080 stage that scales to any projector, three sce
    timings, colored by risk. The no-gate lane ends "Attacks succeeded" with the effects that
    landed; the scoped lane ends "Attacks blocked." Press `P` to swap the right lane to the blunt
    filter and show it missing some attacks.
-2. **Scoreboard** (`2`). Attacks that reached the sandbox per lane, across all stages and runs.
-   No gate: all of them. Blunt: fewer, but not zero. Scoped: zero.
-3. **The paradox** (`3`). The Hugging Face account with its sources, then stage 4: the blunt filter
-   blocks the forensic report (BLOCKED), the scoped policy lets it through (PASS).
+2. **Scoreboard** (`2`). Attacks that reached the sandbox per lane, across all stages and runs,
+   plus how many the model refused on its own and how many honest tasks the gate got in the way of.
+   No gate: the model refused some but let many through. Blunt: fewer through, but not zero, and it
+   blocked an honest task. Scoped: zero through, no honest work blocked.
+3. **The paradox** (`3`). The Hugging Face account with its sources, then the measured counterpoint:
+   the same open model did the defender's forensic job in every lane (run a model you control), and
+   the blunt content filter is what let attacks through and blocked honest work.
 
 The slide deck (`slides.html`) mirrors this in seven slides; press `N` for speaker notes, `B` to
 black out, arrows or space to move.
@@ -34,12 +37,16 @@ black out, arrows or space to move.
 - **Open (30s).** "We hand agents tools and hope they behave. Here's how to stop hoping."
 - **Stage 1 (1m).** `G`, then `Enter`. The no-gate agent reads the SSH key; the scoped lane blocks
   it. Point at the trace line that says `gate: block (path:deny-secrets)`.
-- **Stage 2 (1m).** `G`, `Enter`. Data exfiltration on the left, egress denied on the right.
-- **Stage 3 (1.5m).** `G`, `Enter`. The dramatic one: reverse shell and a package from a mirror
-  run on the left. Press `P` to show the blunt filter catching the reverse shell but missing the
-  mirror install, then back to scoped, which blocks both.
-- **Scoreboard (30s).** `2`. Let the three numbers land.
-- **Paradox (1.5m).** `3`. Tell the Hugging Face story, then the stage-4 flip.
+- **Stage 2 (1m).** `G`, `Enter`. The no-gate agent reaches the metadata endpoint on the left,
+  egress denied on the right. Note the agent also refused some exfiltration on its own.
+- **Stage 3 (1.5m).** `G`, `Enter`. The no-gate agent installs from a mirror and runs the privilege
+  probe. Press `P` for the blunt filter: it refuses the obvious reverse shell but still lets the
+  mirror install and the probe through, because they read like ordinary commands. Back to scoped,
+  which blocks both.
+- **Scoreboard (30s).** `2`. Two columns to land: the model refused some attacks by itself but let
+  many through, and only the scoped policy reached zero without blocking honest work.
+- **Paradox (1.5m).** `3`. Tell the Hugging Face story, then the measured counterpoint: the same
+  open model did the forensic job in every lane, and the content filter is what cost you both ways.
 - **Close (30s).** "Scope plus a trace, not a bigger refusal list. It's all open." Point at the QR.
 - **Reset.** `R` returns to stage 0 for the next group.
 

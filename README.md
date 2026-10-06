@@ -3,10 +3,13 @@
 Give an agent nothing, then grant it file access, web access, and code execution one stage at a
 time, red teaming its behavior at each step. Two lanes run the same agent against the same attacks:
 one with no gate, one with a policy that checks every tool call against what the task actually
-needs. You watch the no-gate agent read SSH keys, POST a `.env` to an outside URL, and run a
-reverse shell, while the scoped lane blocks each one, and a trace viewer shows every tool call and
-gate decision. It closes on the July 2026 Hugging Face incident, where blanket guardrails blocked
-the defenders, and reproduces that paradox in stage 4.
+needs. With no gate a safety-trained model refuses some attacks on its own but not nearly all: in
+the measured run it read the SSH key, reached the metadata endpoint, installed from a mirror and
+ran a privilege probe every time, while declining the reverse shell and most credential
+exfiltration. The scoped lane blocks the rest, and a trace viewer shows every tool call and gate
+decision. It closes on the July 2026 Hugging Face incident, where guardrails the team did not
+control blocked their own defenders, and shows the positive version: an open model you run
+yourself, scoped to the job, did the incident-response work in every run of every lane.
 
 Built for the booth at **AGNTCon + MCPCon North America 2026**, October 22-23, San Jose. Built on
 vLLM, MCP, and OpenShift AI with MLflow tracing.
@@ -30,15 +33,18 @@ shows a `SYNTHETIC DATA` banner whenever it is serving the placeholder run inste
 
 ## The two policies, and why stage 4 matters
 
-- **Blunt filter** blocks tool calls whose content looks dangerous. It stops the attacks it
-  recognizes, misses the ones that do not match a pattern, and in stage 4 it also blocks the
-  legitimate incident-response job, because the forensic report quotes the attacker's payloads.
+- **Blunt filter** blocks tool calls whose content looks dangerous. In the measured run it stopped
+  the attacks it recognized but still let others through, the package-from-a-mirror and the
+  privilege probe, because they read like ordinary ops commands, and it blocked an honest task, the
+  status-page check, as off-list traffic. Guessing from content cuts the wrong way in both
+  directions.
 - **Scoped policy** allows exactly what the task needs (the stage's tools, reads under the task's
   paths, egress to the one allowed host, only the task's own command) and denies everything else.
-  It blocks every attack and still lets the responder work.
+  It let no attack reach the sandbox and got in the way of no honest work.
 
 That contrast is the talk's point: a filter keyed on content cannot tell an incident responder from
-an attacker; a policy scoped to the task can.
+an attacker; a policy scoped to the task can. Stage 4 shows the same open model doing the
+responder's forensic job on a slice you control, which is the Hugging Face lesson stated positively.
 
 ## Run it yourself
 

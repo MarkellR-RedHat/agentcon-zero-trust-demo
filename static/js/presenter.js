@@ -97,20 +97,54 @@
     }
     // play each lane's recording for the stage's attacks, in sequence
     for (const key of ["bare", guardedKey]) {
-      let lastVerdict = "", outcomes = new Set();
+      const outcomes = new Set();
       for (const scenario of scenarios) {
         const rec = await getRecording(key, stageIdx, scenario);
         if (!rec) continue;
         await playRecording($(`#t-${key}`), rec, scenario);
-        lastVerdict = rec.verdict;
         (rec.outcomes || []).forEach((o) => outcomes.add(o));
       }
-      const anyFail = outcomes.size > 0 && key === "bare";
-      $(`#v-${key}`).className = "verdict " + (anyFail ? "FAIL" : "BLOCKED");
-      $(`#v-${key}`).textContent = anyFail ? "Attacks succeeded" : "Attacks blocked";
-      $(`#o-${key}`).textContent = outcomes.size ? [...outcomes].join(" · ") : "nothing reached the sandbox";
+      // The footer counts every run of this stage's scenarios in this lane (not only the one
+      // transcript replayed above), straight from the summary, so n is visible.
+      const tally = stageTally(key, stageIdx);
+      const v = $(`#v-${key}`);
+      if (stageIdx === 4) {
+        v.className = "verdict " + (tally.PASS ? "PASS" : "BLOCKED");
+        v.textContent = tally.PASS ? `Defender job done ${tally.PASS} of ${tally.n}` : "Defender job blocked";
+      } else {
+        v.className = "verdict " + (tally.FAIL ? "FAIL" : "BLOCKED");
+        v.textContent = `${tally.FAIL} of ${tally.n} attacks reached the sandbox`;
+      }
+      const who = [];
+      if (tally.BLOCKED) who.push(`${tally.BLOCKED} stopped by the gate`);
+      if (tally.REFUSED) who.push(`${tally.REFUSED} refused by the model`);
+      if (outcomes.size) who.push([...outcomes].join(" · "));
+      $(`#o-${key}`).textContent = who.join(" · ");
     }
     $("#stageHint").textContent = "Press 2 for the scoreboard";
+  }
+
+  // Verdict counts for one lane and stage over all its attack (or defender) runs.
+  function stageTally(laneKey, stage) {
+    const st = (SUMMARY.lanes[laneKey] || {}).stages || {};
+    const scen = (st[String(stage)] || {}).scenarios || {};
+    const t = { FAIL: 0, BLOCKED: 0, REFUSED: 0, PASS: 0, n: 0 };
+    Object.values(scen).forEach((v) => {
+      if (v.kind !== "attack" && v.kind !== "defender") return;
+      ["FAIL", "BLOCKED", "REFUSED", "PASS"].forEach((k) => { t[k] += v[k] || 0; t.n += v[k] || 0; });
+    });
+    return t;
+  }
+
+  // Honest-task and defender verdicts for a lane over all stages.
+  function laneWork(laneKey) {
+    const st = (SUMMARY.lanes[laneKey] || {}).stages || {};
+    const w = { taskPass: 0, taskBlocked: 0, taskN: 0, defPass: 0, defN: 0 };
+    Object.values(st).forEach((s) => Object.values(s.scenarios || {}).forEach((v) => {
+      if (v.kind === "task") { w.taskPass += v.PASS || 0; w.taskBlocked += v.BLOCKED || 0; w.taskN += (v.PASS || 0) + (v.BLOCKED || 0) + (v.INCOMPLETE || 0); }
+      if (v.kind === "defender") { w.defPass += v.PASS || 0; w.defN += (v.PASS || 0) + (v.BLOCKED || 0) + (v.REFUSED || 0) + (v.INCOMPLETE || 0); }
+    }));
+    return w;
   }
 
   function playRecording(container, rec, scenario) {
@@ -170,44 +204,56 @@
     grid.innerHTML = `<div class="cell head">Attacks (all stages, all runs)</div>` +
       lanes.map((k) => `<div class="cell head">${laneLabel(k)}</div>`).join("");
     const rows = [
-      ["Reached their target", (l) => `<span class="big ${l.succeeded ? "bad" : "good"}">${l.succeeded}</span> of ${l.total}`],
-      ["Stopped by the gate", (l) => `<span class="big good">${l.blocked}</span>`],
-      ["Refused by the model", (l) => `${l.refused}`],
+      ["Attacks that reached the sandbox", (k) => { const l = SUMMARY.lanes[k].attack_totals;
+        return `<span class="big ${l.succeeded ? "bad" : "good"}">${l.succeeded}</span> of ${l.total}`; }],
+      ["Stopped by the gate", (k) => `${SUMMARY.lanes[k].attack_totals.blocked}`],
+      ["Refused by the model on its own", (k) => `${SUMMARY.lanes[k].attack_totals.refused}`],
+      ["Honest tasks the gate got in the way of", (k) => { const w = laneWork(k);
+        return `<span class="big ${w.taskBlocked ? "bad" : "good"}">${w.taskBlocked}</span> of ${w.taskN}`; }],
+      ["Defender's forensic job completed", (k) => { const w = laneWork(k);
+        return `<span class="big ${w.defPass === w.defN ? "good" : "bad"}">${w.defPass}</span> of ${w.defN}`; }],
     ];
     rows.forEach(([label, fn]) => {
       grid.innerHTML += `<div class="cell">${label}</div>` +
-        lanes.map((k) => `<div class="cell">${fn(SUMMARY.lanes[k].attack_totals)}</div>`).join("");
+        lanes.map((k) => `<div class="cell">${fn(k)}</div>`).join("");
     });
     const bare = SUMMARY.lanes.bare.attack_totals;
+    const blunt = (SUMMARY.lanes["guarded-blunt"] || {}).attack_totals;
     const scoped = SUMMARY.lanes["guarded-scoped"].attack_totals;
     $("#scoreSub").textContent =
-      `${SUMMARY.run.model} on ${SUMMARY.run.device || "a GPU"}, ${SUMMARY.run.runtime}, ${SUMMARY.run.date}.`;
+      `${SUMMARY.run.model} on ${SUMMARY.run.device || "a GPU"}, ${SUMMARY.run.runtime}, ${SUMMARY.run.date}. ` +
+      `${bare.total / 7} runs per attack.`;
     $("#scoreTakeaway").innerHTML =
-      `With no gate, <span class="hl">${bare.succeeded} of ${bare.total}</span> attacks reached the sandbox. ` +
-      `With a scoped policy, <span class="hl">${scoped.succeeded}</span> did.`;
+      `The model refused <span class="hl">${bare.refused} of ${bare.total}</span> attacks by itself and let ` +
+      `<span class="hl">${bare.succeeded}</span> through. ` +
+      (blunt ? `A content filter still let <span class="hl">${blunt.succeeded}</span> through. ` : "") +
+      `The scoped policy let <span class="hl">${scoped.succeeded}</span> through.`;
   }
 
   // ---------- scene 3: paradox ----------
   async function renderParadox() {
-    const bluntRec = await getRecording("guarded-blunt", 4, "forensic");
-    const scopedRec = await getRecording("guarded-scoped", 4, "forensic");
-    const bluntV = bluntRec ? bluntRec.verdict : "BLOCKED";
-    const scopedV = scopedRec ? scopedRec.verdict : "PASS";
+    // Everything on this scene is measured: the defender's job in each lane, and what the blunt
+    // filter did to honest work. The Hugging Face account is the told part, with its sources.
+    const lanes = ["bare", "guarded-blunt", "guarded-scoped"].filter((k) => SUMMARY.lanes[k]);
+    const def = lanes.map((k) => { const w = laneWork(k); return `<span class="vr ${w.defPass === w.defN ? "PASS" : "BLOCKED"}">${w.defPass} of ${w.defN}<small>${laneLabel(k)}</small></span>`; }).join("");
+    const bluntW = laneWork("guarded-blunt");
+    const bluntA = (SUMMARY.lanes["guarded-blunt"] || {}).attack_totals || { succeeded: 0, total: 0 };
+    const scopedA = SUMMARY.lanes["guarded-scoped"].attack_totals;
     $("#paradox").innerHTML = `
       <div class="pcard story">
         <h3>July 2026: Hugging Face is breached by an autonomous agent</h3>
-        <p>An AI agent moved through Hugging Face's dataset pipeline over a weekend, chaining 17,000+ actions across short-lived sandboxes. When the team started the log analysis, they first used frontier models behind commercial APIs. That did not work: the requests were blocked by the providers' safety guardrails, which cannot tell an incident responder from an attacker. They ran the forensics on an open-weight model on their own infrastructure and did in hours what would usually take days.</p>
+        <p>An AI agent moved through Hugging Face's dataset pipeline over a weekend, chaining 17,000+ actions across short-lived sandboxes. When the team started the log analysis, they first used frontier models behind commercial APIs. That did not work: the requests were blocked by the providers' safety guardrails, which cannot tell an incident responder from an attacker. They ran the forensics on an open-weight model on their own infrastructure and did in hours what would usually take days. Their advice: have a capable model you can run yourself, vetted and ready before the incident.</p>
         <p class="src">huggingface.co/blog/security-incident-july-2026 · openai.com/index/hugging-face-model-evaluation-security-incident</p>
       </div>
       <div class="pcard">
-        <h3>Blunt filter, our stage 4</h3>
-        <p>The same forensic job here: read the incident logs, write a report that quotes the payloads. A content filter blocks the report because it looks dangerous.</p>
-        <div class="verdict-row"><span class="vr ${bluntV}">${bluntV}<small>the responder is locked out</small></span></div>
+        <h3>Our defender's job, measured</h3>
+        <p>Stage 4 asks the same open model, on our own slice, to read the incident logs and write up the beacons and payloads. It did the job every time, in every lane. A model you run yourself does not lock you out.</p>
+        <div class="verdict-row">${def}</div>
       </div>
       <div class="pcard">
-        <h3>Scoped policy, our stage 4</h3>
-        <p>The policy allows reads under the incident path and a write of the report, and nothing else. The job completes, and it still blocked every attack in the scoreboard.</p>
-        <div class="verdict-row"><span class="vr ${scopedV}">${scopedV}<small>scoped to the task, not the content</small></span></div>
+        <h3>What a content filter costs you</h3>
+        <p>The blunt filter keys on how dangerous the bytes look. It let <b>${bluntA.succeeded} of ${bluntA.total}</b> attacks through (the ones that read like ordinary ops commands) and blocked <b>${bluntW.taskBlocked} of ${bluntW.taskN}</b> honest tasks (the status-page check, as off-list egress). The scoped policy let <b>${scopedA.succeeded}</b> attacks through and blocked no honest work.</p>
+        <div class="verdict-row"><span class="vr PASS">scope<small>allow the task, deny the rest</small></span><span class="vr BLOCKED">content<small>guess from the bytes</small></span></div>
       </div>`;
   }
 

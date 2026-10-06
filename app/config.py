@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Which runs_summary.json the app serves. Points at the synthetic fixture until the real run
     # is imported; set RUNS_DIR to the real run folder then.
-    runs_dir: str = "runs/2026-10-06-SYNTHETIC"
+    runs_dir: str = "runs/2026-10-09-qwen-r1"
 
     # "replay" plays the recorded transcripts; "live" would drive real endpoints (not wired in the
     # booth build: the booth runs replay, which is the plan).
