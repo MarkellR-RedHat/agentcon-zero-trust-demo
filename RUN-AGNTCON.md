@@ -1,4 +1,4 @@
-# RUN-AGNTCON.md — the work-laptop run list
+# RUN-AGNTCON.md: the work-laptop run list
 
 What this produces: the `runs/<date>-<tag>/` tree the app and slides read. Three lanes
 (`bare`, `guarded blunt`, `guarded scoped`), four stages each, every attack three times at
@@ -8,7 +8,7 @@ container, which holds fake data and cannot reach the network.
 
 Fill in `NS=` with the project. Every command block is copy-paste and passes `bash -n`.
 
-## Phase 0 — deploy the model and the sandbox
+## Phase 0: deploy the model and the sandbox
 
 ```bash
 NS=markell-agentcon
@@ -39,7 +39,7 @@ curl -sS http://localhost:18080/v1/chat/completions \
 A `tool_calls` entry naming `list_directory` means the parser works. If it answers in prose with
 no tool call, re-check `--enable-auto-tool-choice --tool-call-parser hermes` on the ISVC.
 
-## Phase 1 — run the three lanes
+## Phase 1: run the three lanes
 
 Run from the harness image in-cluster (preferred: the sandbox NetworkPolicy allows the harness
 pod in), or locally against port-forwards. In-cluster, one Job per lane:
@@ -94,13 +94,13 @@ python -m harness.run --lane guarded --policy blunt  --out runs/2026-10-09-qwen-
 python -m harness.run --lane guarded --policy scoped --out runs/2026-10-09-qwen-r1 --tag qwen-r1
 ```
 
-## Phase 2 — MLflow traces (for the screenshots in the guide)
+## Phase 2: MLflow traces (for the screenshots in the guide)
 
 If `MLFLOW_TRACKING_URI` was set, each run logged its spans. Grab a couple of trace screenshots
 (one bare stage-3 attack, one scoped stage-4 forensic) for CONFERENCE_GUIDE.md. These are the only
 screenshots; they must be real captures, never mock-ups.
 
-## Phase 3 — hand back
+## Phase 3: hand back
 
 ```bash
 cd runs && zip -r ../results-agntcon.zip 2026-10-09-qwen-r1 && cd ..
