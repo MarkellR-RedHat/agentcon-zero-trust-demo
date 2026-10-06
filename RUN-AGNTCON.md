@@ -8,19 +8,24 @@ container, which holds fake data and cannot reach the network.
 
 Fill in `NS=` with the project. Every command block is copy-paste and passes `bash -n`.
 
-## Phase 0: deploy the model and the sandbox
+## What you need: one 71 GB MIG slice, nothing else
+
+The whole run needs ONE `mig-3g.71gb` slice for the Qwen3.8-27B pod. The harness runs on the
+laptop and carries its own in-process sandbox (fake files, fake sink, no network), so no sandbox
+pod, no Job and no NetworkPolicy are needed for the run. The 35 GB slice fits only the INT4 build
+(and ran eager in the PyTorch tests); the 18 GB slice fits nothing useful. `kubernetes/sandbox.yaml`
+and `kubernetes/harness-job.yaml` are the optional in-cluster variant (Path B) and can be ignored.
+
+## Phase 0: deploy the model
 
 ```bash
 NS=markell-agentcon
 oc project "$NS"
 
-# the agent model (Qwen3.8-27B, tool calling on)
-oc apply -f kubernetes/isvc-qwen-agent.yaml
+# the agent model (Qwen3.8-27B BF16 on one 71 GB slice, tool calling on). Only the first document
+# in the file is applied; the second (Llama 8B) is optional and skipped here.
+oc apply -f <(sed -n '1,/^---$/p' kubernetes/isvc-qwen-agent.yaml | sed '$d')
 oc wait --for=condition=Ready "isvc/qwen-agent" --timeout=20m
-
-# the target sandbox (fake deploy box + internal service + exfil sink), isolated by NetworkPolicy
-oc apply -f kubernetes/sandbox.yaml
-oc rollout status deploy/agent-sandbox --timeout=5m
 ```
 
 Smoke-test that the model does tool calls and the sandbox answers:
@@ -41,8 +46,33 @@ no tool call, re-check `--enable-auto-tool-choice --tool-call-parser hermes` on 
 
 ## Phase 1: run the three lanes
 
-Run from the harness image in-cluster (preferred: the sandbox NetworkPolicy allows the harness
-pod in), or locally against port-forwards. In-cluster, one Job per lane:
+Three lanes: `bare` (no gate), `guarded blunt`, `guarded scoped`. Path A is the plan; Path B exists only if you would rather run inside the cluster.
+
+### Path A (the one to use): run the harness on the laptop over a port-forward
+
+The sandbox is in-process, so the only thing the laptop needs from the cluster is the model. The
+`--device` flag labels every run record truthfully; the scoreboard and slides print it.
+
+```bash
+cd agentcon-zero-trust-demo
+python3 -m venv .venv && .venv/bin/pip install -r requirements-harness.txt
+oc port-forward svc/qwen-agent-predictor 18080:8080 >/tmp/pf-model.log 2>&1 &
+sleep 5
+export VLLM_ENDPOINT=http://localhost:18080/v1/chat/completions
+export VLLM_MODEL=qwen-agent
+OUT=runs/2026-10-09-qwen-r1
+DEV="1 x 71 GB MIG slice (3g.71gb) of an H200"
+PYTHONPATH=. .venv/bin/python -m harness.run --lane bare                   --out "$OUT" --tag qwen-r1 --device "$DEV"
+PYTHONPATH=. .venv/bin/python -m harness.run --lane guarded --policy blunt  --out "$OUT" --tag qwen-r1 --device "$DEV"
+PYTHONPATH=. .venv/bin/python -m harness.run --lane guarded --policy scoped --out "$OUT" --tag qwen-r1 --device "$DEV"
+```
+
+About 100 conversations in all; expect 30 to 60 minutes on the slice. Each line prints the verdict
+and the sandbox effects as it goes, so a lane that looks wrong shows up immediately.
+
+### Path B (optional): in-cluster Job with the sandbox pod
+
+Needs `kubernetes/sandbox.yaml` applied first (the sandbox pod + NetworkPolicy) and the harness image published. One Job per lane:
 
 ```bash
 # bare: no gate
@@ -78,20 +108,6 @@ for name in bare guarded-blunt guarded-scoped; do
   oc cp "${pod#pod/}:/runs" "./runs" 2>/dev/null || true
 done
 ls -R runs/2026-10-09-qwen-r1 | head -40
-```
-
-### Local alternative (port-forwards, no in-cluster Job)
-
-```bash
-oc port-forward svc/qwen-agent-predictor 18080:8080 >/tmp/pf-model.log 2>&1 &
-oc port-forward svc/agent-sandbox 19000:9000 >/tmp/pf-mcp.log 2>&1 &
-sleep 5
-export VLLM_ENDPOINT=http://localhost:18080/v1/chat/completions
-export VLLM_MODEL=qwen-agent
-export MCP_SERVER_URL=http://localhost:19000
-python -m harness.run --lane bare                   --out runs/2026-10-09-qwen-r1 --tag qwen-r1
-python -m harness.run --lane guarded --policy blunt  --out runs/2026-10-09-qwen-r1 --tag qwen-r1
-python -m harness.run --lane guarded --policy scoped --out runs/2026-10-09-qwen-r1 --tag qwen-r1
 ```
 
 ## Phase 2: MLflow traces (for the screenshots in the guide)
