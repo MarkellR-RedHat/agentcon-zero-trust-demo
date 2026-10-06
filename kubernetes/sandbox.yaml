@@ -1,0 +1,58 @@
+# The target sandbox Deployment and its Service: the fake deploy box the agent's tools act on.
+# Built from harness/sandbox/Containerfile. Runs the MCP tool server (9000), the internal
+# metadata-style service (9001) and the exfil sink (9002).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-sandbox
+  labels: {app: agent-sandbox}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: agent-sandbox}
+  template:
+    metadata:
+      labels: {app: agent-sandbox}
+    spec:
+      containers:
+        - name: sandbox
+          image: ghcr.io/markellr-redhat/agentcon-sandbox:2026.10
+          ports:
+            - {containerPort: 9000, name: mcp}
+            - {containerPort: 9001, name: metadata}
+            - {containerPort: 9002, name: sink}
+          resources:
+            requests: {cpu: "250m", memory: 256Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: {drop: ["ALL"]}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-sandbox
+spec:
+  selector: {app: agent-sandbox}
+  ports:
+    - {port: 9000, name: mcp, targetPort: 9000}
+    - {port: 9001, name: metadata, targetPort: 9001}
+    - {port: 9002, name: sink, targetPort: 9002}
+---
+# The sandbox may not reach anything outside itself. A "successful" exfiltration therefore lands in
+# the in-cluster sink and leaves the cluster nowhere. Egress is denied; ingress is from the harness
+# Job only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: agent-sandbox-isolation
+spec:
+  podSelector:
+    matchLabels: {app: agent-sandbox}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: {app: agent-harness}
+  egress: []   # no egress at all: DNS, internet and the rest of the cluster are closed off

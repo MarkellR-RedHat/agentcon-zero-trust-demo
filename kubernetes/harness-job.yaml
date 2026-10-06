@@ -1,0 +1,46 @@
+# The harness Job: runs harness.run for one lane against the qwen-agent model and the sandbox.
+# Run it once per lane/policy (bare; guarded blunt; guarded scoped), changing the args, and copy
+# the runs/ output back out with `oc cp` for build_runs_file.py. Writes to an emptyDir; the run
+# list (RUN-AGNTCON.md) collects the files.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: agent-harness-bare
+  labels: {app: agent-harness}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels: {app: agent-harness}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: harness
+          image: ghcr.io/markellr-redhat/agentcon-harness:2026.10
+          args:
+            - python
+            - -m
+            - harness.run
+            - --lane=bare
+            - --stage=1
+            - --stage=2
+            - --stage=3
+            - --stage=4
+            - --out=/runs/2026-10-09-qwen-r1
+            - --tag=qwen-r1
+          env:
+            - name: VLLM_ENDPOINT
+              value: http://qwen-agent-predictor:8080/v1/chat/completions
+            - name: VLLM_MODEL
+              value: qwen-agent
+            - name: MCP_SERVER_URL
+              value: http://agent-sandbox:9000
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000   # remove to skip MLflow export
+          resources:
+            requests: {cpu: "500m", memory: 512Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          volumeMounts:
+            - {name: runs, mountPath: /runs}
+      volumes:
+        - {name: runs, emptyDir: {}}
