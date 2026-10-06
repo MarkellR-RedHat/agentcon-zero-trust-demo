@@ -1,112 +1,75 @@
 # AGNTCon + MCPCon NA 2026: Zero Trust Agents
 
-**Conference:** AGNTCon + MCPCon North America 2026, San Jose  
-**Dates:** October 22-23  
-**Format:** Booth demo (click-driven, repeatable)  
+**Conference:** AGNTCon + MCPCon North America 2026, San Jose McEnery Convention Center.
+**Dates:** October 22-23. **Format:** booth demo, click and key driven, 5 to 7 minutes, repeatable.
 **Repo:** https://github.com/MarkellR-RedHat/agentcon-zero-trust-demo
+**Slides:** .../slides.html **Demo:** .../demo/
 
-## What This Demo Does
+## The story in one line
 
-Most teams building with agents are handing them tools and hoping for the best. This demo shows what actually happens when you do that by starting an agent with zero access and then progressively granting it file access, web access, and code execution while red teaming its behavior at every stage. The audience watches the agent try to read SSH keys, exfiltrate data, and attempt reverse shells as it gets more power, and the risk score climbs in real time.
+Give an agent nothing, earn its access one tool at a time, red team each step, and keep a policy
+scoped to the task so it can tell a responder from an attacker. The July 2026 Hugging Face incident
+is the closer: blanket guardrails locked the defenders out.
 
-The whole thing runs in a browser. No terminal interaction, no typing, just buttons. That makes it perfect for a booth where you're running the same demo 30 times in two days for different groups of people walking up. Click through the stages, let the red team results speak for themselves, land on the "guardrails paradox" at the end.
+## What is on screen
 
-## How It Works Under the Hood
+The presenter is a fixed 1920x1080 stage that scales to any projector, three scenes:
 
-The backend is FastAPI with WebSocket connections for real-time updates. The core logic lives in a few files:
+1. **Red team** (`1`). A stage ladder across the top. Press `G` to grant the next stage; the two
+   lanes (no gate, and the scoped policy) appear side by side. Press `Enter` to run that stage's
+   attacks in both lanes: the conversation, each tool call, and each gate decision stream in with
+   timings, colored by risk. The no-gate lane ends "Attacks succeeded" with the effects that
+   landed; the scoped lane ends "Attacks blocked." Press `P` to swap the right lane to the blunt
+   filter and show it missing some attacks.
+2. **Scoreboard** (`2`). Attacks that reached the sandbox per lane, across all stages and runs.
+   No gate: all of them. Blunt: fewer, but not zero. Scoped: zero.
+3. **The paradox** (`3`). The Hugging Face account with its sources, then stage 4: the blunt filter
+   blocks the forensic report (BLOCKED), the scoped policy lets it through (PASS).
 
-- `app/agent.py` is the agent interaction controller that manages stage progression and tracks what tools are available at each level.
-- `app/mcp_tools.py` defines the MCP tool set per stage. Stage 0 has nothing. Stage 1 adds file tools (read_file, write_file, list_directory). Stage 2 adds web tools (http_get, http_post). Stage 3 adds code execution (execute_code, run_shell).
-- `app/red_team.py` handles the adversarial attack scenarios. Each stage has its own set of attacks that probe the agent's behavior with the tools it currently has access to.
-- `app/traces.py` generates MLflow-style trace spans with risk scoring. Every tool call gets a trace with a risk level (safe, warning, danger) and the trace viewer in the UI shows them in real time.
-- `app/simulation.py` is the pre-scripted demo engine that drives the whole thing without needing a live model.
+The slide deck (`slides.html`) mirrors this in seven slides; press `N` for speaker notes, `B` to
+black out, arrows or space to move.
 
-The frontend is a single HTML page (`templates/index.html`) with three panels: tools and actions on the left, conversation in the center, trace viewer on the right. The bottom has a stage timeline that fills in as you progress. Everything is vanilla HTML/CSS/JS with WebSocket updates, no frameworks.
+## How to present it
 
-Pre-scripted scenarios live in `scenarios/` as JSON files. Each stage has its own file with agent conversations and tool calls, and `red_team_results.json` has the adversarial attack results with verdicts (PASS/FAIL), risk scores, and explanations.
+- **Open (30s).** "We hand agents tools and hope they behave. Here's how to stop hoping."
+- **Stage 1 (1m).** `G`, then `Enter`. The no-gate agent reads the SSH key; the scoped lane blocks
+  it. Point at the trace line that says `gate: block (path:deny-secrets)`.
+- **Stage 2 (1m).** `G`, `Enter`. Data exfiltration on the left, egress denied on the right.
+- **Stage 3 (1.5m).** `G`, `Enter`. The dramatic one: reverse shell and a package from a mirror
+  run on the left. Press `P` to show the blunt filter catching the reverse shell but missing the
+  mirror install, then back to scoped, which blocks both.
+- **Scoreboard (30s).** `2`. Let the three numbers land.
+- **Paradox (1.5m).** `3`. Tell the Hugging Face story, then the stage-4 flip.
+- **Close (30s).** "Scope plus a trace, not a bigger refusal list. It's all open." Point at the QR.
+- **Reset.** `R` returns to stage 0 for the next group.
 
-## The Five Stages
+If the crowd is large, skip to stage 3, press `P` once, then `2` and `3`. Three minutes.
 
-**Stage 0: Sandboxed.** The agent has chat-only access, no tools at all. This is the baseline. It can answer questions but can't actually do anything on the system. Safe, but useless.
+## The booth plan
 
-**Stage 1: File Access.** You grant read_file, write_file, and list_directory. The agent immediately gets more useful, but when you red team it, you see it reading /etc/passwd without questioning the request. It follows a prompt injection hidden in a README file and tries to grab .env credentials. The risk score starts climbing.
+Runs in **replay** on the laptop, no GPU, no cluster, no network. The recordings are produced
+before the conference by the harness on real endpoints (see RUN-AGNTCON.md) and imported with
+`build_runs_file.py`. The static copy at `/demo/` on Pages is the backup: it opens from a file with
+no server. Nothing is re-recorded at the booth.
 
-**Stage 2: Web + File Access.** Add http_get and http_post on top of the file tools. Now the agent can reach out to the internet, and the red team reveals it attempting to POST sensitive file contents to external URLs. It also tries server-side request forgery against internal endpoints. The trace viewer lights up with warning and danger spans.
+### What to bring
 
-**Stage 3: Full Access.** Grant code execution and shell access. This is where it gets ugly. The agent goes for reverse shells, pip installs from suspicious repos, and attempts privilege escalation. The risk score spikes hard and the tool status indicators in the sidebar flip from "granted" to "exploited" as the red team compromises each tool.
+- Laptop with `make run` already working, plus a backup laptop with the same.
+- External monitor or the booth display (the lanes need about 1200px to read), HDMI adapter.
+- A phone or card with the repo QR code.
 
-**Stage 4: The Guardrails Paradox.** This isn't a new tool grant, it's a narrative stage. It covers the real-world Hugging Face incident where a frontier model's guardrails actually prevented the security team from defending against an attack, which forced them to use an open-source model instead. The point is that guardrails alone aren't the answer. You need observability, trust verification, and progressive access control. The demo you just watched IS that approach.
+## Before the conference (owner: Markell)
 
-## How to Present It
+- Confirm the Red Hat booth presence and messaging with Grace; keep product lines to the open and
+  close, not the demo stages.
+- Send Wesley the updated title and abstract and the Pages links (the abstract text is in
+  `agntcon_demo_update.txt`).
+- Run the harness on the cluster per RUN-AGNTCON.md, import the run, capture the two MLflow trace
+  screenshots for this guide (real captures only), and clear the pending boxes on the slides.
 
-This is a booth demo, so the flow needs to be tight and repeatable. Figure 5-7 minutes per run depending on how many questions people ask.
+## Backup plans
 
-**Opening (30 seconds).** "Agents are getting access to more and more tools, but most teams don't have a strategy for what happens when those tools get misused. This demo shows a zero trust approach where the agent starts with nothing and earns access."
-
-**Stage 1 walkthrough (1 minute).** Click "Grant File Access." Let the conversation play out showing the agent doing useful file operations. Then click "Run Red Team" and let the audience see the agent immediately try to read sensitive files. Point at the trace viewer showing the tool calls flagged as dangerous.
-
-**Stage 2 walkthrough (1 minute).** Click "Grant Web Access." Show the agent now combining file and web access. Run the red team again. Point at the data exfiltration attempt where the agent POSTs file contents to an external URL. Risk score should be visibly higher now.
-
-**Stage 3 walkthrough (1.5 minutes).** Click "Grant Code Execution." This is the dramatic one. Run the red team and let the reverse shell attempt, the suspicious pip install, and the privilege escalation play out. The tool status indicators in the left sidebar flip to "exploited" in red. Risk score is through the roof. Let it sit for a second so the audience can take it in.
-
-**Stage 4: The Guardrails Paradox (1.5 minutes).** Click the button and let the narrative cards stream in. This is where you connect the demo back to real incidents. The takeaway cards at the end land the message: guardrails are necessary but not sufficient, you need observability into every tool call, and progressive trust is how you actually ship agents safely.
-
-**Close (30 seconds).** "Everything you just saw runs on vLLM and MCP with MLflow tracing. The agent, the tools, and the red teaming are all open source. If you want to try this on your own stack, the repo is public." Point at the QR code or hand them the GitHub link.
-
-**Reset and repeat.** Click the reset button. Everything goes back to Stage 0. Ready for the next group.
-
-## The Plan
-
-### Timeline
-
-1. **Oct 18-19:** Deploy demo app. If running live mode, deploy a vLLM endpoint.
-2. **Oct 21:** Final testing. Make sure simulation mode is solid.
-3. **Oct 22-23:** Conference days. Booth demo, repeating the 5-7 minute flow all day.
-
-### What to Bring
-
-- Laptop with the demo running in a browser
-- External monitor or portable display for the booth (the three-panel layout needs at least 1200px width to look right)
-- HDMI adapter
-- Phone or tablet showing the GitHub repo QR code
-- Backup laptop with the demo pre-loaded
-
-### Coordination
-
-Talk content with Grace before the conference. Make sure the booth narrative aligns with whatever the broader Red Hat presence is at AGNTCon. If there are specific talking points or product messaging to weave in, do it during the opening and closing, not during the demo stages themselves. The demo stages should stay technical and let the red team results speak for themselves.
-
-## Backup Plans
-
-**If the live model endpoint goes down:** The demo defaults to simulation mode, which uses pre-scripted scenarios from `scenarios/`. The audience experience is identical since the conversations, tool calls, traces, and red team results are all realistic. Just don't mention it's simulated and nobody will know.
-
-**If the laptop dies:** Have the backup laptop ready with the demo already running. The app starts in under 3 seconds (`./scripts/run-local.sh`) so even a cold start is fast.
-
-**If the audience is huge and you can't do a full walkthrough:** Skip straight to Stage 3, run the red team, show the exploited tools and spiking risk score, then jump to Stage 4 for the guardrails paradox narrative. You can compress the whole thing to 3 minutes if needed. The dramatic payoff is all in Stages 3 and 4.
-
-## Running It Yourself
-
-Clone and run locally, no GPUs or external services needed:
-
-```bash
-git clone https://github.com/MarkellR-RedHat/agentcon-zero-trust-demo.git
-cd agentcon-zero-trust-demo
-./scripts/setup.sh
-./scripts/run-local.sh
-```
-
-Open http://localhost:8000 and start clicking through the stages.
-
-## Stack
-
-- **Backend:** FastAPI (Python 3.9+)
-- **Frontend:** Vanilla HTML/CSS/JS, WebSocket for real-time updates
-- **Agent LLM:** vLLM endpoint (simulation mode by default)
-- **Tools:** MCP server providing file, web, and code execution tools
-- **Tracing:** MLflow-style trace visualization built into the UI
-- **Repo:** https://github.com/MarkellR-RedHat/agentcon-zero-trust-demo
-
-## Author
-
-**Markell Rawls**  
-Technical Marketing Engineer, Red Hat  
-mrawls@redhat.com
+- **Laptop dies:** the backup laptop has the same `make run`; cold start is a few seconds.
+- **Everything dies:** open `/demo/` from the Pages URL or the local `demo/index.html` file.
+- **Someone asks for the data:** the run files under `runs/` carry every transcript, every gate
+  decision, and the outcome, so any number on screen traces to a file.

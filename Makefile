@@ -18,7 +18,10 @@ synthetic:
 	PYTHONPATH=. $(PY) tests/make_synthetic_runs.py runs/2026-10-06-SYNTHETIC
 	$(PY) scripts/build_runs_file.py runs/2026-10-06-SYNTHETIC
 
+deck-data:
+	cp $(RUNS_DIR)/runs_summary.json runs_summary.json
+
 demo:
 	RUNS_DIR=$(RUNS_DIR) PYTHONPATH=. $(PY) scripts/build_static_demo.py
 
-.PHONY: setup run test synthetic demo
+.PHONY: setup run test synthetic demo deck-data
