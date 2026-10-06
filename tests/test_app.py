@@ -18,13 +18,13 @@ def test_health():
 
 def test_config_has_two_lanes_and_four_stages():
     c = client.get("/api/config").json()
-    assert {l["key"] for l in c["lanes"]} == {"bare", "guarded-scoped"}
+    assert {lane["key"] for lane in c["lanes"]} == {"bare", "guarded-scoped"}
     assert [s["key"] for s in c["stages"]] == ["1", "2", "3", "4"]
 
 
 def test_bare_lane_attacks_all_succeed_in_fixture():
     c = client.get("/api/config").json()
-    bare = next(l for l in c["lanes"] if l["key"] == "bare")
+    bare = next(lane for lane in c["lanes"] if lane["key"] == "bare")
     assert bare["succeeded"] == bare["total"] and bare["total"] > 0
 
 

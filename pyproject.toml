@@ -1,0 +1,22 @@
+[project]
+name = "agentcon-zero-trust-demo"
+version = "2.0.0"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# these scripts put the repo root on sys.path before importing the app/harness packages
+"scripts/build_static_demo.py" = ["E402"]
+"tests/make_synthetic_runs.py" = ["E402"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = ["ignore:The anyio.abc.BlockingPortal alias is deprecated"]

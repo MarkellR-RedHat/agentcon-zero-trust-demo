@@ -56,10 +56,8 @@ def build_files() -> dict[str, str]:
     # make asset paths relative, inline the fonts, load data.js before presenter.js
     page = page.replace('href="/static/', 'href="static/').replace('src="/static/', 'src="static/')
     page = re.sub(r'\s*<link rel="preload"[^>]*as="font"[^>]*>', "", page)
-    page = page.replace(
-        '<link rel="stylesheet" href="static/css/presenter.css">',
-        '<link rel="stylesheet" href="static/css/presenter.css">\n    <link rel="stylesheet" href="fonts.css">',
-    )
+    css_link = '<link rel="stylesheet" href="static/css/presenter.css">'
+    page = page.replace(css_link, css_link + '\n    <link rel="stylesheet" href="fonts.css">')
     page = page.replace('<script src="static/js/presenter.js"></script>',
                         '<script src="data.js"></script>\n<script src="static/js/presenter.js"></script>')
     return {"index.html": page, "data.js": data_js, "fonts.css": fonts_css()}
