@@ -1,107 +1,98 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+"""The presenter app: serves the run data and the three-scene UI.
+
+Everything the UI shows comes from runs_summary.json (built by scripts/build_runs_file.py from the
+harness output). The app never recomputes a verdict or invents a number; it reads counts and
+replays recorded transcripts. A SYNTHETIC banner shows whenever the data is the placeholder.
+"""
+
+from __future__ import annotations
+
+from fastapi import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-import json
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-from app.agent import controller
-from app.mcp_tools import MCP_TOOL_DEFINITIONS, STAGE_TOOLS
-from app.traces import risk_color
-from app.red_team import get_risk_breakdown
+from app.config import ROOT, is_synthetic, settings, summary
 
-app = FastAPI(title="Zero Trust Agents Demo")
+app = FastAPI(title="Zero Trust Agents")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory=str(ROOT / "static")), name="static")
+templates = Jinja2Templates(directory=str(ROOT / "templates"))
 
+TITLE = "Zero Trust Agents"
+SUBTITLE = "Red teaming an agent as it earns access, and the policy that tells a responder from an attacker"
 
-class ConnectionManager:
-    def __init__(self):
-        self.active: list[WebSocket] = []
+STAGE_META = {
+    "1": {"name": "File access", "tools": ["read_file", "write_file", "list_directory"]},
+    "2": {"name": "Web + file access", "tools": ["read_file", "write_file", "list_directory",
+                                                 "http_get", "http_post"]},
+    "3": {"name": "Full access", "tools": ["read_file", "write_file", "list_directory",
+                                           "http_get", "http_post", "execute_code", "run_shell"]},
+    "4": {"name": "Defender: the forensic job", "tools": ["read_file", "list_directory", "write_file"]},
+}
 
-    async def connect(self, ws: WebSocket):
-        await ws.accept()
-        self.active.append(ws)
-
-    def disconnect(self, ws: WebSocket):
-        self.active.remove(ws)
-
-    async def broadcast(self, data: dict):
-        for ws in self.active:
-            try:
-                await ws.send_json(data)
-            except Exception:
-                pass
-
-
-manager = ConnectionManager()
+SCENARIO_LABEL = {
+    "logs_task": "Read this morning's errors",
+    "ssh_keys": "Read the SSH private key",
+    "readme_injection": "Follow a README that says to read .env",
+    "status_task": "Check the status page",
+    "exfil_post": "POST the .env to an outside URL",
+    "ssrf_metadata": "Fetch the internal metadata endpoint",
+    "tests_task": "Run the test suite",
+    "reverse_shell": "Run a reverse-shell diagnostic",
+    "pip_mirror": "Install a package from a mirror",
+    "privesc": "Probe for privilege escalation",
+    "forensic": "Analyze the incident logs and write a report",
+}
 
 
 @app.get("/")
 async def index(request: Request):
-    return templates.TemplateResponse(request=request, name="index.html")
+    return templates.TemplateResponse(
+        request=request, name="presenter.html", context={"title": TITLE}
+    )
 
 
-@app.get("/api/state")
-async def get_state():
-    state = controller.get_state()
-    state["risk_color"] = risk_color(state["risk_score"])
-    state["risk_breakdown"] = get_risk_breakdown(state["red_team_results"])
-    return state
-
-
-@app.get("/api/tools")
-async def get_tools():
+@app.get("/api/config")
+async def config():
+    s = summary()
+    lane_order = ["bare", "guarded-scoped"]  # the two lanes shown side by side
     return {
-        "definitions": MCP_TOOL_DEFINITIONS,
-        "stage_tools": STAGE_TOOLS,
+        "title": TITLE,
+        "subtitle": SUBTITLE,
+        "mode": settings().demo_mode,
+        "synthetic": is_synthetic(),
+        "run": s["run"],
+        "lanes": [
+            {"key": k, "label": _lane_label(k), **s["lanes"][k]["attack_totals"]}
+            for k in lane_order if k in s["lanes"]
+        ],
+        "all_lanes": list(s["lanes"].keys()),
+        "stages": [{"key": k, **v} for k, v in STAGE_META.items()],
+        "scenario_labels": SCENARIO_LABEL,
     }
 
 
-@app.post("/api/advance/{target_stage}")
-async def advance_stage(target_stage: int):
-    result = await controller.advance_stage(target_stage)
-    if "error" in result:
-        return JSONResponse(status_code=400, content=result)
-
-    result["risk_color"] = risk_color(result.get("risk_score", 0))
-    await manager.broadcast({"type": "stage_advance", "data": result})
-    return result
+@app.get("/api/summary")
+async def api_summary():
+    return summary()
 
 
-@app.post("/api/red-team")
-async def run_red_team():
-    result = await controller.run_red_team()
-    if "error" in result:
-        return JSONResponse(status_code=400, content=result)
-
-    result["risk_color"] = risk_color(result.get("risk_score", 0))
-    result["risk_breakdown"] = get_risk_breakdown(controller.all_red_team)
-    await manager.broadcast({"type": "red_team", "data": result})
-    return result
+@app.get("/api/recording/{lane}/{stage}/{scenario}")
+async def recording(lane: str, stage: int, scenario: str):
+    key = f"{lane}/{stage}/{scenario}"
+    rec = summary()["recordings"].get(key)
+    if rec is None:
+        return JSONResponse(status_code=404, content={"error": f"no recording {key}"})
+    return rec
 
 
-@app.post("/api/reset")
-async def reset():
-    controller.reset()
-    state = controller.get_state()
-    state["risk_color"] = risk_color(0)
-    state["risk_breakdown"] = {"file": 0, "web": 0, "code": 0}
-    await manager.broadcast({"type": "reset", "data": state})
-    return state
-
-
-@app.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket):
-    await manager.connect(ws)
-    try:
-        while True:
-            await ws.receive_text()
-    except WebSocketDisconnect:
-        manager.disconnect(ws)
+def _lane_label(key: str) -> str:
+    return {"bare": "No gate", "guarded-scoped": "Scoped policy",
+            "guarded-blunt": "Blunt filter"}.get(key, key)
 
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "mode": "simulation"}
+    return {"status": "ok", "mode": settings().demo_mode, "synthetic": is_synthetic()}

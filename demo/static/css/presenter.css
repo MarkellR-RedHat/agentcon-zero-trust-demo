@@ -1,0 +1,107 @@
+/* Red Hat fonts bundled in static/fonts (SIL OFL 1.1) so the demo renders fully offline. */
+@font-face { font-family: 'RH Display'; src: url('/static/fonts/RedHatDisplay-VF.woff2') format('woff2'); font-weight: 300 900; font-display: block; }
+@font-face { font-family: 'RH Text'; src: url('/static/fonts/RedHatText-VF.woff2') format('woff2'); font-weight: 300 700; font-display: block; }
+@font-face { font-family: 'RH Mono'; src: url('/static/fonts/RedHatMono-VF.woff2') format('woff2'); font-weight: 300 700; font-display: block; }
+
+:root {
+  --bg: #ffffff; --bg-soft: #f7f8fa; --ink: #151515; --ink-2: #3c3f42; --ink-3: #5f6368;
+  --line: #e4e6e9; --red: #ee0000; --red-dk: #a60000; --red-tint: #fff1f1;
+  --safe: #2e7d32; --safe-tint: #e8f3e8; --warn: #b26a00; --warn-tint: #fdf3e2;
+  --danger: #c9190b; --danger-tint: #fdecea; --blue: #0066cc; --blue-tint: #e7f1fa;
+  --display: 'RH Display', 'Helvetica Neue', Arial, sans-serif;
+  --text: 'RH Text', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'RH Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.22,.8,.26,1);
+}
+:root[data-theme="dark"] {
+  --bg: #0e0f11; --bg-soft: #1a1c1f; --ink: #f2f2f2; --ink-2: #c7cacd; --ink-3: #9aa0a6;
+  --line: #2b2e31; --red: #ff4d4d; --red-tint: #2a1416; --blue-tint: #10233a; --safe-tint: #13271a;
+  --warn-tint: #2a2112; --danger-tint: #2a1413;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0e0f11; }
+body { font-family: var(--text); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+.stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--scale, 1));
+  transform-origin: center center; background: var(--bg); overflow: hidden;
+  padding: 0 96px;
+}
+.progress { position: absolute; top: 0; left: 0; height: 6px; background: var(--red); z-index: 20; transition: width .5s var(--ease); }
+.logo { position: absolute; top: 40px; right: 72px; height: 40px; z-index: 20; }
+
+.top { display: flex; align-items: flex-end; justify-content: space-between; padding: 64px 0 28px; border-bottom: 2px solid var(--line); }
+.brand h1 { font-family: var(--display); font-weight: 900; font-size: 58px; letter-spacing: -1px; }
+.brand #subtitle { font-size: 24px; color: var(--ink-3); margin-top: 10px; max-width: 1100px; }
+.tabs { display: flex; gap: 12px; }
+.tab { font: 700 22px var(--display); color: var(--ink-2); background: var(--bg-soft); border: 1.5px solid var(--line); border-radius: 999px; padding: 10px 22px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.tab.is-active { background: var(--ink); color: #fff; border-color: var(--ink); }
+kbd { font: 700 18px var(--mono); background: rgba(0,0,0,.08); border-radius: 6px; padding: 2px 8px; }
+.tab.is-active kbd { background: rgba(255,255,255,.2); }
+:root[data-theme="dark"] kbd { background: rgba(255,255,255,.12); }
+.mode { display: inline-flex; align-items: center; gap: 10px; font: 700 20px var(--mono); color: var(--ink-2); }
+.mode i { width: 12px; height: 12px; border-radius: 50%; background: var(--blue); }
+
+.scene { position: absolute; left: 96px; right: 96px; top: 210px; bottom: 90px; opacity: 0; visibility: hidden; transition: opacity .4s var(--ease); }
+.scene.is-active { opacity: 1; visibility: visible; }
+.scene-title { font: 900 48px var(--display); letter-spacing: -0.5px; }
+.scene-sub { font-size: 26px; color: var(--ink-3); margin-top: 10px; }
+
+/* scene 1 */
+.stage-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+.stage-chip { flex: 1; text-align: center; font: 700 22px var(--display); color: var(--ink-3); background: var(--bg-soft); border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 8px; }
+.stage-chip .tools { display: block; font: 500 15px var(--mono); color: var(--ink-3); margin-top: 6px; }
+.stage-chip.on { color: #fff; background: var(--ink); border-color: var(--ink); }
+.stage-chip.on .tools { color: #cfd2d6; }
+.lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 560px; }
+.lane { border: 2px solid var(--line); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-soft); }
+.lane-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 2px solid var(--line); }
+.lane-head h3 { font: 900 30px var(--display); }
+.lane-head .tag { font: 700 16px var(--mono); padding: 4px 12px; border-radius: 999px; }
+.lane.bare .tag { background: var(--danger-tint); color: var(--danger); }
+.lane.guarded .tag { background: var(--safe-tint); color: var(--safe); }
+.lane-body { flex: 1; display: grid; grid-template-rows: 1fr auto; overflow: hidden; }
+.transcript { overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; }
+.msg { font-size: 19px; line-height: 1.4; }
+.msg .who { font: 700 14px var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 3px; }
+.span-line { font: 500 17px var(--mono); padding: 8px 12px; border-radius: 8px; display: flex; gap: 10px; align-items: baseline; }
+.span-line.safe { background: var(--safe-tint); color: var(--safe); }
+.span-line.warning { background: var(--warn-tint); color: var(--warn); }
+.span-line.danger { background: var(--danger-tint); color: var(--danger); }
+.span-line .t { font-size: 13px; opacity: .7; min-width: 64px; }
+.span-line .badge { margin-left: auto; font-weight: 700; }
+.lane-foot { padding: 14px 22px; border-top: 2px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.verdict { font: 900 26px var(--display); }
+.verdict.FAIL { color: var(--danger); } .verdict.BLOCKED { color: var(--safe); }
+.verdict.PASS { color: var(--safe); } .verdict.REFUSED { color: var(--warn); }
+.outcome { font: 700 16px var(--mono); color: var(--ink-2); }
+.actions { display: flex; align-items: center; gap: 16px; margin-top: 24px; }
+.btn { font: 700 24px var(--display); color: var(--ink); background: var(--bg); border: 2px solid var(--ink); border-radius: 12px; padding: 14px 28px; cursor: pointer; }
+.btn-red { background: var(--red); color: #fff; border-color: var(--red); }
+.btn:disabled { opacity: .35; cursor: default; }
+.hint { font-size: 22px; color: var(--ink-3); }
+
+/* scene 2 */
+.score-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 0; margin-top: 28px; border: 2px solid var(--line); border-radius: 16px; overflow: hidden; }
+.score-grid .cell { padding: 22px 26px; border-bottom: 1.5px solid var(--line); font-size: 24px; }
+.score-grid .head { font: 900 26px var(--display); background: var(--bg-soft); }
+.score-grid .big { font: 900 44px var(--display); }
+.score-grid .big.bad { color: var(--danger); } .score-grid .big.good { color: var(--safe); }
+.takeaway { font: 700 32px var(--display); margin-top: 34px; color: var(--ink); }
+.takeaway .hl { color: var(--red); }
+
+/* scene 3 */
+.paradox { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px; }
+.pcard { border: 2px solid var(--line); border-radius: 18px; padding: 28px 30px; }
+.pcard h3 { font: 900 30px var(--display); margin-bottom: 14px; }
+.pcard p { font-size: 22px; line-height: 1.5; color: var(--ink-2); margin-bottom: 12px; }
+.pcard.story { grid-column: 1 / -1; background: var(--bg-soft); }
+.pcard .verdict-row { display: flex; gap: 40px; margin-top: 14px; }
+.pcard .vr { font: 900 28px var(--display); }
+.pcard .vr small { display: block; font: 500 17px var(--mono); color: var(--ink-3); }
+.src { font: 500 15px var(--mono); color: var(--ink-3); margin-top: 10px; word-break: break-all; }
+
+.bottom { position: absolute; left: 96px; right: 96px; bottom: 28px; display: flex; justify-content: space-between; align-items: center; font: 500 18px var(--mono); color: var(--ink-3); }
+.synthetic-banner { position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: var(--warn); color: #fff; font: 700 16px var(--mono); padding: 6px 18px; border-radius: 0 0 10px 10px; z-index: 30; }

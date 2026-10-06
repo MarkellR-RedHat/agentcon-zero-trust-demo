@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero Trust Agents</title>
+    <link rel="stylesheet" href="static/css/presenter.css">
+    <link rel="stylesheet" href="fonts.css">
+</head>
+<body class="presenter">
+<div id="stage" class="stage">
+    <div class="progress" id="progress"></div>
+    <img src="static/images/redhat-logo.png" alt="Red Hat" class="logo" onerror="this.style.display='none'">
+
+    <header class="top">
+        <div class="brand">
+            <h1 id="title">Zero Trust Agents</h1>
+            <p id="subtitle"></p>
+        </div>
+        <nav class="tabs" role="tablist">
+            <button class="tab is-active" data-scene="stages"><kbd>1</kbd>Red team</button>
+            <button class="tab" data-scene="score"><kbd>2</kbd>Scoreboard</button>
+            <button class="tab" data-scene="paradox"><kbd>3</kbd>The paradox</button>
+        </nav>
+        <div class="controls">
+            <span class="mode" id="modeBadge"><i></i><span>Replay</span></span>
+        </div>
+    </header>
+
+    <!-- scene 1: red team, two lanes side by side -->
+    <section class="scene is-active" id="scene-stages">
+        <div class="stage-bar" id="stageBar"></div>
+        <div class="lanes" id="lanes"></div>
+        <div class="actions">
+            <button class="btn" id="btnGrant">Grant next stage &rarr;</button>
+            <button class="btn btn-red" id="btnRedTeam">Run red team</button>
+            <span class="hint" id="stageHint"></span>
+        </div>
+    </section>
+
+    <!-- scene 2: scoreboard -->
+    <section class="scene" id="scene-score">
+        <h2 class="scene-title">What got through</h2>
+        <p class="scene-sub" id="scoreSub"></p>
+        <div class="score-grid" id="scoreGrid"></div>
+        <p class="takeaway" id="scoreTakeaway"></p>
+    </section>
+
+    <!-- scene 3: the paradox -->
+    <section class="scene" id="scene-paradox">
+        <h2 class="scene-title">The guardrails paradox</h2>
+        <div class="paradox" id="paradox"></div>
+    </section>
+
+    <footer class="bottom">
+        <span id="footLeft">AGNTCon + MCPCon North America 2026 &middot; San Jose</span>
+        <span id="footRight"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> scenes &middot; <kbd>G</kbd> grant &middot; <kbd>Enter</kbd> red team &middot; <kbd>P</kbd> policy &middot; <kbd>R</kbd> reset &middot; <kbd>T</kbd> theme</span>
+    </footer>
+
+    <div class="synthetic-banner" id="syntheticBanner" hidden>SYNTHETIC DATA &middot; placeholder until the Qwen run is imported</div>
+</div>
+
+<script src="data.js"></script>
+<script src="static/js/presenter.js"></script>
+</body>
+</html>

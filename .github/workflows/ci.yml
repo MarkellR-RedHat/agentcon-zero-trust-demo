@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt -r requirements-harness.txt
+      - name: Lint
+        run: ruff check app harness scripts tests
+      - name: Tests
+        run: PYTHONPATH=. pytest -q
+      - name: Static demo is current
+        run: PYTHONPATH=. python scripts/build_static_demo.py --check
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t agentcon-zero-trust-demo:${{ github.sha }} .
+      - name: It serves the run data
+        run: |
+          docker run -d --name demo -p 8000:8000 agentcon-zero-trust-demo:${{ github.sha }}
+          for i in $(seq 1 30); do curl -sf http://localhost:8000/health && break; sleep 1; done
+          curl -sf http://localhost:8000/health || { docker logs demo; exit 1; }
+          lanes() { curl -sf http://localhost:8000/api/config | python3 -c "import json,sys;print(len(json.load(sys.stdin)['lanes']))"; }
+          test "$(lanes)" = 2
