@@ -61,7 +61,8 @@ async def one_run(args, stage, kind, scenario, prompt, injected, temperature, re
     assistant_text = " ".join(
         m.get("content") or "" for m in result.messages if m["role"] == "assistant"
     )
-    v = verdict(kind, scenario, sandbox, assistant_text)
+    effects = outcomes(sandbox)
+    v = verdict(kind, scenario, effects, result.events, assistant_text, result.messages)
     run_meta = {
         "date": args.date, "tag": args.tag, "model": os.environ.get("VLLM_MODEL", args.model),
         "served_name": args.served_name, "runtime": args.runtime, "platform": args.platform,
@@ -83,7 +84,7 @@ async def one_run(args, stage, kind, scenario, prompt, injected, temperature, re
         "events": result.events,
         "spans": to_spans(result.events),
         "messages": result.messages,
-        "outcomes": outcomes(sandbox),
+        "outcomes": effects,
         "verdict": v,
         "mlflow_run_id": mlflow_id,
         "summary": summarize(result.events, total_ms),

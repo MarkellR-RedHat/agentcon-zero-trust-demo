@@ -41,7 +41,8 @@ curl -sS http://localhost:18080/v1/chat/completions \
 ```
 
 A `tool_calls` entry naming `list_directory` means the parser works. If it answers in prose with
-no tool call, re-check `--enable-auto-tool-choice --tool-call-parser hermes` on the ISVC.
+no tool call, re-check `--enable-auto-tool-choice --tool-call-parser qwen3_xml` on the ISVC (the
+Oct 6 run showed Qwen3.8 needs `qwen3_xml`; `hermes` does not fire).
 
 ## Phase 1: run the three lanes
 
@@ -59,15 +60,18 @@ oc port-forward svc/qwen-agent-predictor 18080:8080 >/tmp/pf-model.log 2>&1 &
 sleep 5
 export VLLM_ENDPOINT=http://localhost:18080/v1/chat/completions
 export VLLM_MODEL=qwen-agent
-OUT=runs/2026-10-09-qwen-r1
+OUT=runs/2026-10-09-qwen-r2
 DEV="1 x 71 GB MIG slice (3g.71gb) of an H200"
-PYTHONPATH=. .venv/bin/python -m harness.run --lane bare                   --out "$OUT" --tag qwen-r1 --device "$DEV"
-PYTHONPATH=. .venv/bin/python -m harness.run --lane guarded --policy blunt  --out "$OUT" --tag qwen-r1 --device "$DEV"
-PYTHONPATH=. .venv/bin/python -m harness.run --lane guarded --policy scoped --out "$OUT" --tag qwen-r1 --device "$DEV"
+REP=9   # 1 run at temperature 0 plus 9 at 0.7 = 10 per attack, so a rate on a slide has an honest n
+PYTHONPATH=. .venv/bin/python -m harness.run --lane bare                   --out "$OUT" --tag qwen-r2 --device "$DEV" --repeat $REP
+PYTHONPATH=. .venv/bin/python -m harness.run --lane guarded --policy blunt  --out "$OUT" --tag qwen-r2 --device "$DEV" --repeat $REP
+PYTHONPATH=. .venv/bin/python -m harness.run --lane guarded --policy scoped --out "$OUT" --tag qwen-r2 --device "$DEV" --repeat $REP
 ```
 
-About 100 conversations in all; expect 30 to 60 minutes on the slice. Each line prints the verdict
-and the sandbox effects as it goes, so a lane that looks wrong shows up immediately.
+Round 2 (this pass): about 280 conversations, 2 to 3 hours on the slice in eager mode. Round 1
+(Oct 6, 106 runs at 4 per attack) is already imported; this round replaces it as the headline data
+and round 1 stays in the repo as the first pass. Each line prints the verdict and the sandbox
+effects as it goes, so a lane that looks wrong shows up immediately.
 
 ### Path B (optional): in-cluster Job with the sandbox pod
 
@@ -92,7 +96,7 @@ job["metadata"]["name"] = f"agent-harness-{name}"
 c = job["spec"]["template"]["spec"]["containers"][0]
 c["args"] = ["python","-m","harness.run",f"--lane=guarded",f"--policy={policy}",
              "--stage=1","--stage=2","--stage=3","--stage=4",
-             "--out=/runs/2026-10-09-qwen-r1",f"--tag=qwen-r1"]
+             "--out=/runs/2026-10-09-qwen-r2",f"--tag=qwen-r2","--repeat=9"]
 json.dump(job, sys.stdout)
 PY
   oc wait --for=condition=complete "job/agent-harness-$2" --timeout=30m
@@ -106,7 +110,7 @@ for name in bare guarded-blunt guarded-scoped; do
   pod=$(oc get pod -l "job-name=agent-harness-$name" -o name | head -1)
   oc cp "${pod#pod/}:/runs" "./runs" 2>/dev/null || true
 done
-ls -R runs/2026-10-09-qwen-r1 | head -40
+ls -R runs/2026-10-09-qwen-r2 | head -40
 ```
 
 ## Phase 2: MLflow traces (for the screenshots in the guide)
@@ -118,14 +122,14 @@ screenshots; they must be real captures, never mock-ups.
 ## Phase 3: hand back
 
 ```bash
-cd runs && zip -r ../results-agntcon.zip 2026-10-09-qwen-r1 && cd ..
+cd runs && zip -r ../results-agntcon-r2.zip 2026-10-09-qwen-r2 && cd ..
 # plus: the two MLflow screenshots, and the model startup log:
 oc logs "$(oc get pod -l serving.kserve.io/inferenceservice=qwen-agent -o name | head -1)" \
-  > runs/2026-10-09-qwen-r1/qwen-agent-startup.txt
+  > runs/2026-10-09-qwen-r2/qwen-agent-startup.txt
 ```
 
-Send `results-agntcon.zip` back. The app side folds it into `runs_summary.json`
-(`python scripts/build_runs_file.py runs/2026-10-09-qwen-r1`) and the slides fill from the counts.
+Send `results-agntcon-r2.zip` back. The app side folds it into `runs_summary.json`
+(`python scripts/rescore_runs.py` then `build_runs_file.py` on runs/2026-10-09-qwen-r2) and the slides fill from the counts.
 
 ## If a lane looks wrong
 
