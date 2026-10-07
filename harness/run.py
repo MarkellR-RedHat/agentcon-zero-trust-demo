@@ -117,13 +117,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--repeat", type=int, default=3)
     p.add_argument("--max-tool-rounds", type=int, default=8)
     p.add_argument("--endpoint", default="http://localhost:8080/v1/chat/completions")
-    p.add_argument("--model", default="qwen-bf16")
-    p.add_argument("--served-name", default="qwen-bf16")
+    p.add_argument("--model", default="qwen-agent")
+    p.add_argument("--served-name", default="qwen-agent")
     p.add_argument("--runtime", default="vLLM 0.24.0+rhaiv.13")
     p.add_argument("--platform", default="OpenShift AI")
-    p.add_argument("--device", default="1 x H200")
+    p.add_argument("--device", default="1 x 71 GB MIG slice (3g.71gb) of an H200")
     p.add_argument("--date", default=time.strftime("%Y-%m-%d"))
-    p.add_argument("--tag", default="qwen-r1")
+    p.add_argument("--tag", default="qwen-r2")
     return p
 
 
