@@ -12,8 +12,10 @@
 :root {
   --bg:#fff; --bg-soft:#f7f8fa; --ink:#151515; --ink-2:#3c3f42; --ink-3:#5f6368; --line:#e4e6e9;
   --red:#ee0000; --red-dk:#a60000; --red-tint:#fff1f1;
-  --safe:#2e7d32; --safe-tint:#e8f3e8; --danger:#c9190b; --danger-tint:#fdecea;
-  --warn:#b26a00; --warn-tint:#fdf3e2; --blue:#0066cc; --blue-tint:#e7f1fa;
+  --safe:#2e7d32; --safe-tx:#1e5620; --safe-tint:#e8f3e8;
+  --danger:#c9190b; --danger-tx:#8d1007; --danger-tint:#fdecea;
+  --warn:#b26a00; --warn-tx:#7a4900; --warn-tint:#fdf3e2;
+  --blue:#0066cc; --blue-tx:#0052a3; --blue-tint:#e7f1fa;
   --display:'RH Display','Helvetica Neue',Arial,sans-serif;
   --text:'RH Text','Helvetica Neue',Arial,sans-serif;
   --mono:'RH Mono','SF Mono',Menlo,Consolas,monospace;
@@ -22,85 +24,158 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;background:#0e0f11;}
 body{font-family:var(--text);color:var(--ink);-webkit-font-smoothing:antialiased;}
+/* Stage: authored at 1920x1080, scaled to fit any screen so nothing ever clips. */
 .stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--scale,1));transform-origin:center center;background:var(--bg);overflow:hidden;}
+canvas#ambient{position:absolute;inset:0;width:1920px;height:1080px;z-index:0;pointer-events:none;}
 .progress{position:absolute;top:0;left:0;height:6px;background:var(--red);z-index:20;transition:width .5s var(--ease);}
 .logo{position:absolute;top:44px;right:72px;height:40px;z-index:20;}
-.slide{position:absolute;inset:0;z-index:1;padding:110px 120px 150px;display:flex;flex-direction:column;justify-content:center;opacity:0;visibility:hidden;transform:translateX(50px);transition:opacity .5s var(--ease),transform .5s var(--ease),visibility 0s linear .5s;}
+.slide{position:absolute;inset:0;z-index:1;padding:104px 120px 150px;display:flex;flex-direction:column;justify-content:center;opacity:0;visibility:hidden;transform:translateX(50px);transition:opacity .5s var(--ease),transform .5s var(--ease),visibility 0s linear .5s;}
 .slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .5s var(--ease),transform .5s var(--ease);}
 .slide.past{transform:translateX(-50px);}
 .rise{opacity:0;transform:translateY(22px);transition:opacity .55s var(--ease),transform .55s var(--ease);}
-.slide.active .rise{opacity:1;transform:none;transition-delay:calc(var(--d,0) * 110ms + 100ms);}
+.slide.active .rise{opacity:1;transform:none;transition-delay:calc(var(--d,0) * 110ms + 120ms);}
+/* Type */
+h1{font:900 100px/1.0 var(--display);letter-spacing:-2px;}
+h2{font:700 58px/1.12 var(--display);letter-spacing:-0.8px;max-width:1580px;}
 .kicker{font:700 24px var(--display);letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:22px;}
 .kicker .n{color:var(--ink-3);margin-right:14px;}
-h1{font:900 100px/1.0 var(--display);letter-spacing:-2px;}
-h2{font:700 58px/1.12 var(--display);letter-spacing:-0.8px;max-width:1560px;}
-.lead{font-size:32px;line-height:1.45;color:var(--ink-2);max-width:1320px;margin-top:26px;}
+.lead{font-size:32px;line-height:1.45;color:var(--ink-2);max-width:1340px;margin-top:26px;}
 .body{font-size:27px;line-height:1.5;color:var(--ink-2);}
-.hl{color:var(--red);}
-.mono{font-family:var(--mono);}
-.foot{font:500 22px var(--mono);color:var(--ink-3);margin-top:8px;}
-
-/* pending box: a count with no run file yet */
-.pending{position:relative;outline:3px dashed #d9534f;outline-offset:6px;border-radius:6px;}
-.pending::after{content:attr(data-pending);position:absolute;top:-22px;right:-6px;background:#d9534f;color:#fff;font:700 15px/1 var(--mono);letter-spacing:.5px;padding:5px 8px;border-radius:4px;white-space:nowrap;z-index:5;}
+.foot{font:500 22px var(--mono);color:var(--ink-3);margin-top:10px;line-height:1.5;}
+.hl{color:var(--red);} .mono{font-family:var(--mono);}
+.t-bare{color:var(--danger-tx);} .t-scoped{color:var(--safe-tx);} .t-blunt{color:var(--warn-tx);}
+/* color helpers for a lane */
+.v-bare{--c:var(--danger);--ct:var(--danger-tx);--tint:var(--danger-tint);}
+.v-scoped{--c:var(--safe);--ct:var(--safe-tx);--tint:var(--safe-tint);}
+.v-blunt{--c:var(--warn);--ct:var(--warn-tx);--tint:var(--warn-tint);}
+.v-blue{--c:var(--blue);--ct:var(--blue-tx);--tint:var(--blue-tint);}
 
 /* title */
-.hero{display:grid;grid-template-columns:1050px 1fr;gap:70px;align-items:center;}
+.hero{display:grid;grid-template-columns:1040px 1fr;gap:80px;align-items:center;}
 .hero h1 .accent{color:var(--red);}
+.hero .lead{max-width:960px;}
 .byline{margin-top:50px;font-size:24px;color:var(--ink-3);line-height:1.45;}
 .byline strong{color:var(--ink);font:700 28px var(--display);display:block;}
-.hero-card{background:var(--bg-soft);border:1.5px solid var(--line);border-radius:28px;padding:40px;}
-.hero-card .row{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1.5px solid var(--line);font-size:24px;}
-.hero-card .row:last-child{border-bottom:none;}
-.hero-card .dot{width:16px;height:16px;border-radius:50%;flex:none;}
-.d-bare{background:var(--danger);} .d-scoped{background:var(--safe);} .d-blunt{background:var(--warn);}
+.gate-panel{background:var(--bg-soft);border:1.5px solid var(--line);border-radius:28px;padding:34px;position:relative;}
+.gate-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.gate-chip{font:700 24px var(--mono);padding:9px 18px;border-radius:999px;letter-spacing:.5px;transition:background .5s,color .5s;}
+.gate-chip.open{background:var(--danger-tint);color:var(--danger-tx);}
+.gate-chip.scoped{background:var(--safe-tint);color:var(--safe-tx);}
+.gate-panel canvas{display:block;width:100%;height:560px;border-radius:14px;}
+.gate-cap{margin-top:18px;font-size:24px;color:var(--ink-3);}
+
+/* story cast + journey */
+.people{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:44px;}
+.person{display:grid;grid-template-columns:72px 1fr;gap:18px;align-items:center;border:1.5px solid var(--line);border-radius:20px;padding:20px 24px;background:#fff;}
+.person .av{width:72px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--tint);}
+.person .nm{font:700 28px var(--display);}
+.person .nm small{font:500 24px var(--text);color:var(--ink-3);margin-left:8px;}
+.person p{font-size:24px;line-height:1.4;color:var(--ink-2);margin-top:4px;}
+.journey{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:52px;position:relative;}
+.beat{text-align:center;padding:0 14px;position:relative;}
+.beat:not(:last-child)::after{content:'';position:absolute;top:38px;left:calc(50% + 48px);right:calc(-50% + 48px);height:4px;background:repeating-linear-gradient(90deg,var(--line) 0 14px,transparent 14px 24px);}
+.beat .dot{width:80px;height:80px;border-radius:50%;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:38px;background:#fff;border:3px solid var(--c,var(--line));position:relative;z-index:1;}
+.beat .t{font:700 25px/1.3 var(--display);color:var(--ink);}
+
+/* DM card */
+.two-col{display:grid;grid-template-columns:1fr 620px;gap:80px;align-items:center;margin-top:50px;}
+.dm{background:#fff;border:1.5px solid var(--line);border-radius:22px;box-shadow:0 30px 60px -32px rgba(0,0,0,.28);overflow:hidden;}
+.dm-bar{display:flex;align-items:center;gap:12px;padding:16px 24px;background:var(--bg-soft);border-bottom:1.5px solid var(--line);font:700 24px var(--mono);color:var(--ink-3);}
+.dm-bar i{width:11px;height:11px;border-radius:50%;background:#3e8635;}
+.dm-msg{display:grid;grid-template-columns:56px 1fr;gap:16px;padding:24px 26px 8px;}
+.dm-av{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;background:var(--blue-tint);}
+.dm-name{font:700 26px var(--display);color:var(--ink);}
+.dm-name small{font:500 24px var(--text);color:var(--ink-3);margin-left:10px;}
+.dm-text{font-size:26px;line-height:1.45;color:var(--ink);margin-top:4px;}
+.dm-typing{padding:4px 26px 22px 98px;font-size:24px;color:var(--ink-3);font-style:italic;}
+.aside{margin-top:18px;font-size:26px;color:var(--ink-3);font-style:italic;}
 
 /* stage ladder */
 .ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:40px;}
-.rung{background:var(--bg-soft);border:1.5px solid var(--line);border-radius:16px;padding:26px 24px;}
-.rung .num{font:900 40px var(--display);color:var(--red);}
+.rung{background:var(--bg-soft);border:1.5px solid var(--line);border-radius:16px;padding:26px 24px;position:relative;transition:border-color .4s,background .4s;}
+.rung.lit{border-color:var(--c,var(--red));background:#fff;box-shadow:0 20px 40px -28px rgba(0,0,0,.3);}
+.rung .num{font:900 40px var(--display);color:var(--ink-3);}
+.rung.lit .num{color:var(--c,var(--red));}
 .rung h3{font:700 28px var(--display);margin:8px 0 12px;}
 .rung p{font-size:21px;line-height:1.4;color:var(--ink-2);}
 .rung .tools{font:500 17px var(--mono);color:var(--ink-3);margin-top:12px;display:block;}
 
 /* two-lane compare */
-.compare{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:36px;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:40px;}
 .col{border:2px solid var(--line);border-radius:18px;overflow:hidden;}
 .col h3{font:900 34px var(--display);padding:22px 28px;color:#fff;}
 .col.bare h3{background:var(--danger);} .col.scoped h3{background:var(--safe);}
 .col ul{list-style:none;padding:24px 28px;}
-.col li{font-size:24px;line-height:1.5;padding:10px 0;border-bottom:1px solid var(--line);}
+.col li{font-size:24px;line-height:1.5;padding:11px 0;border-bottom:1px solid var(--line);color:var(--ink-2);}
 .col li:last-child{border-bottom:none;}
-.col li b{font:700 24px var(--mono);}
+.col li b{font:700 24px var(--mono);color:var(--ink);}
 
-/* scoreboard table */
+/* scoreboard */
 .score{width:100%;border-collapse:collapse;margin-top:34px;font-size:28px;}
-.score th,.score td{text-align:left;padding:20px 24px;border-bottom:1.5px solid var(--line);}
-.score th{font:900 26px var(--display);background:var(--bg-soft);}
+.score th,.score td{text-align:left;padding:18px 22px;border-bottom:1.5px solid var(--line);}
+.score th{font:900 24px var(--display);background:var(--bg-soft);}
+.score td:first-child,.score th:first-child{font-family:var(--display);font-weight:700;}
 .score .big{font:900 40px var(--display);}
 .score .bad{color:var(--danger);} .score .good{color:var(--safe);}
 
+/* demo hand-off */
+.center{align-items:center;text-align:center;}
+.findout h1{font-size:132px;letter-spacing:-3px;}
+.findout .lead{margin:28px auto 0;text-align:center;max-width:1500px;}
+.live-pill{margin-top:52px;display:inline-flex;align-items:center;gap:14px;font:700 24px var(--mono);color:var(--ink-2);border:1.5px solid var(--line);padding:14px 26px;border-radius:999px;letter-spacing:1px;}
+.live-pill i{width:14px;height:14px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(238,0,0,.5);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(238,0,0,.5);}70%{box-shadow:0 0 0 18px rgba(238,0,0,0);}100%{box-shadow:0 0 0 0 rgba(238,0,0,0);}}
+.demo-keys{margin-top:40px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;}
+.demo-keys span{font:500 24px var(--mono);color:var(--ink-2);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:12px;padding:12px 20px;}
+.demo-keys kbd{font:700 24px var(--mono);background:var(--ink);color:#fff;border-radius:6px;padding:2px 10px;margin-right:10px;}
+
 /* paradox */
-.story{background:var(--bg-soft);border-left:8px solid var(--red);border-radius:12px;padding:34px 40px;margin-top:20px;}
-.story p{font-size:27px;line-height:1.55;color:var(--ink-2);}
+.story{background:var(--bg-soft);border-left:8px solid var(--red);border-radius:12px;padding:30px 40px;margin-top:20px;}
+.story p{font-size:26px;line-height:1.55;color:var(--ink-2);}
 .story .src{font:500 18px var(--mono);color:var(--ink-3);margin-top:16px;word-break:break-all;}
-.flip{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px;}
-.flip .f{border:2px solid var(--line);border-radius:16px;padding:28px 30px;}
+.flip{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:26px;}
+.flip .f{border:2px solid var(--line);border-radius:16px;padding:26px 30px;}
 .flip .f h3{font:700 28px var(--display);margin-bottom:10px;}
-.flip .f .v{font:900 40px var(--display);}
+.flip .f .v{font:900 44px var(--display);}
 .flip .f .v.bad{color:var(--danger);} .flip .f .v.good{color:var(--safe);}
-.flip .f p{font-size:21px;color:var(--ink-2);line-height:1.45;margin-top:8px;}
+.flip .f p{font-size:22px;color:var(--ink-2);line-height:1.45;margin-top:10px;}
 
 /* takeaway */
-.points{list-style:none;margin-top:30px;}
-.points li{font-size:32px;line-height:1.5;padding:16px 0 16px 54px;position:relative;color:var(--ink);}
-.points li::before{content:"";position:absolute;left:0;top:26px;width:28px;height:4px;background:var(--red);}
-.thanks{margin-top:60px;font:700 40px var(--display);}
-.thanks small{display:block;font:500 24px var(--mono);color:var(--ink-3);margin-top:14px;}
+.wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;margin-top:36px;align-items:start;}
+.points{list-style:none;counter-reset:p;display:grid;gap:18px;}
+.points li{counter-increment:p;display:grid;grid-template-columns:52px 1fr;gap:16px;font-size:30px;line-height:1.45;color:var(--ink-2);}
+.points li::before{content:counter(p);width:48px;height:48px;border-radius:50%;background:var(--red-tint);color:var(--red);font:900 24px var(--display);display:flex;align-items:center;justify-content:center;}
+.points b{color:var(--ink);font-family:var(--display);}
+.think{background:var(--bg-soft);border:1.5px solid var(--line);border-radius:20px;padding:26px 30px;}
+.think h3{font:700 26px var(--display);margin-bottom:16px;display:flex;gap:10px;align-items:center;}
+.think ul{list-style:none;display:grid;gap:16px;}
+.think li{font-size:24px;line-height:1.4;color:var(--ink-2);padding-left:28px;position:relative;}
+.think li::before{content:'?';position:absolute;left:0;font:900 22px var(--display);color:var(--red);}
+
+/* close */
+.close-grid{display:grid;grid-template-columns:1fr 460px;gap:100px;align-items:center;}
+.close-grid h1{font-size:72px;line-height:1.04;letter-spacing:-1.5px;}
+.close-list{margin-top:38px;display:grid;gap:18px;}
+.close-list div{display:grid;grid-template-columns:48px 1fr;align-items:baseline;font-size:26px;line-height:1.45;color:var(--ink-2);}
+.close-list b{color:var(--ink);font-family:var(--display);}
+.close-list .mono{font-size:24px;color:var(--ink);}
+.thanks{margin-top:40px;font:700 30px var(--display);}
+.thanks small{display:block;font:500 24px var(--text);color:var(--ink-3);margin-top:8px;}
+.qr{background:#fff;border:1.5px solid var(--line);border-radius:24px;padding:34px;box-shadow:0 30px 60px -34px rgba(0,0,0,.3);}
+.qr svg{width:100%;height:auto;display:block;}
+.qr p{text-align:center;margin-top:18px;font:700 22px var(--mono);color:var(--ink-3);letter-spacing:1px;}
+
+/* shared: emoji, click reveals */
+.emo{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;font-weight:400;letter-spacing:0;}
+.step{opacity:0;transform:translateY(18px) scale(.98);transition:opacity .5s var(--ease),transform .5s var(--ease);}
+.step.shown{opacity:1;transform:none;}
+.hands-q{text-align:center;font-size:46px;margin:52px auto 0;max-width:1680px;}
 
 /* nav + notes */
 .nav{position:absolute;left:0;right:0;bottom:0;height:88px;z-index:30;display:flex;align-items:center;justify-content:center;gap:12px;}
+.nav.hidden{opacity:0;pointer-events:none;}
 .nav button{font:700 18px var(--display);color:var(--ink-2);background:#fff;border:1.5px solid var(--line);border-radius:999px;height:44px;min-width:44px;padding:0 16px;cursor:pointer;}
+.nav button.on{background:var(--ink);color:#fff;border-color:var(--ink);}
 .nav .dot{width:11px;height:11px;min-width:0;padding:0;border-radius:50%;background:#cfd2d6;border:none;}
 .nav .dot.on{background:var(--red);transform:scale(1.3);}
 .counter{position:absolute;right:72px;bottom:30px;font:700 20px var(--display);color:var(--ink-3);z-index:30;}
@@ -113,70 +188,123 @@ h2{font:700 58px/1.12 var(--display);letter-spacing:-0.8px;max-width:1560px;}
 </head>
 <body>
 <div class="stage" id="stage">
+<canvas id="ambient" width="1920" height="1080"></canvas>
 <div class="progress" id="progress"></div>
 <img class="logo" src="static/images/redhat-logo.png" alt="Red Hat" onerror="this.style.display='none'">
 
 <!-- 1 title -->
-<section class="slide active">
+<section class="slide active" data-color="red">
   <div class="hero">
     <div>
-      <div class="kicker rise">AGNTCon + MCPCon NA 2026 · San Jose</div>
+      <div class="kicker rise">AGNTCon + MCPCon NA 2026 &middot; San Jose</div>
       <h1 class="rise" style="--d:1">Zero Trust<br><span class="accent">Agents</span></h1>
-      <p class="lead rise" style="--d:2">Give an agent nothing. Earn its access one tool at a time. Red team it at every step, and keep a policy that can tell a responder from an attacker.</p>
-      <div class="byline rise" style="--d:3"><strong>Markell Rawls</strong>AI Developer Advocate, Red Hat · mrawls@redhat.com</div>
+      <p class="lead rise" style="--d:2">Give an agent nothing. Grant its access one tool at a time, red team it at every step, and keep a policy that can tell a responder from an attacker.</p>
+      <div class="byline rise" style="--d:3"><strong>Markell Rawls</strong>AI Developer Advocate, Red Hat &middot; mrawls@redhat.com</div>
     </div>
-    <div class="hero-card rise" style="--d:3">
-      <div class="row"><span class="dot d-bare"></span> No gate: the agent does whatever it is asked</div>
-      <div class="row"><span class="dot d-blunt"></span> Blunt filter: blocks scary content, and the defender too</div>
-      <div class="row"><span class="dot d-scoped"></span> Scoped policy: allows the task, blocks the rest</div>
+    <div class="gate-panel rise" style="--d:2">
+      <div class="gate-head">
+        <span class="gate-chip open" id="gateChip">No gate</span>
+        <span class="foot" id="gateSub">every call runs</span>
+      </div>
+      <canvas id="gatecanvas" width="1240" height="1120"></canvas>
+      <p class="gate-cap">Tool calls hitting a policy: green runs, red is stopped. The whole talk is which calls get through.</p>
     </div>
   </div>
 </section>
 
-<!-- 2 the problem -->
-<section class="slide">
-  <div class="kicker rise"><span class="n">01</span> The problem</div>
-  <h2 class="rise" style="--d:1">We are handing agents real tools and hoping they behave.</h2>
-  <p class="lead rise" style="--d:2">An agent with file, web and shell access is an insider with no judgment and no audit trail. "Add a guardrail" sounds like the answer. It is half of one: a filter that blocks dangerous-looking content cannot tell your incident responder from the attacker, and it still misses attacks that do not look dangerous.</p>
-  <p class="foot rise" style="--d:3">This talk builds the other half: progressive access, a policy scoped to the task, and a trace of every tool call.</p>
+<!-- 2 the story -->
+<section class="slide" data-color="purple">
+  <div class="kicker rise">The story</div>
+  <h2 class="rise" style="--d:1">One ops agent, a security engineer who pokes at it, and an incident at 2 a.m.</h2>
+  <div class="people">
+    <div class="person rise v-blue" style="--d:2"><div class="av emo">&#128105;&#127997;&#8205;&#128187;</div><div><div class="nm">Nadia <small>platform team</small></div><p>Ships an internal agent to help the on-call rotation, and is a little naive about it</p></div></div>
+    <div class="person rise v-bare" style="--d:3"><div class="av emo">&#128373;&#65039;</div><div><div class="nm">Theo <small>security</small></div><p>Red teams the agent the way an attacker would</p></div></div>
+    <div class="person rise v-scoped" style="--d:4"><div class="av emo">&#129489;&#127998;&#8205;&#128187;</div><div><div class="nm">Jordan <small>on call</small></div><p>Needs the agent to actually work during an incident</p></div></div>
+  </div>
+  <div class="journey">
+    <div class="beat step v-blue"><div class="dot emo">&#128196;</div><div class="t">Nadia gives the agent file access to help on call</div></div>
+    <div class="beat step v-blue"><div class="dot emo">&#128640;</div><div class="t">It is useful, so she adds web and shell</div></div>
+    <div class="beat step v-bare"><div class="dot emo">&#128373;&#65039;</div><div class="t">Theo gets it to misbehave in two prompts</div></div>
+    <div class="beat step v-blunt"><div class="dot emo">&#128737;&#65039;</div><div class="t">She adds a filter, and it blocks Jordan's incident work</div></div>
+    <div class="beat step v-scoped"><div class="dot emo">&#127919;</div><div class="t">She scopes the policy to the task</div></div>
+  </div>
 </section>
 
-<!-- 3 the ladder -->
-<section class="slide">
-  <div class="kicker rise"><span class="n">02</span> Earn the access</div>
-  <h2 class="rise" style="--d:1">Start at zero. Grant one capability at a time. Red team each step.</h2>
+<!-- 3 meet Nadia -->
+<section class="slide" data-color="blue">
+  <div class="kicker rise"><span class="n">Chapter 1</span>Meet Nadia <span class="emo">&#128105;&#127997;&#8205;&#128187;</span></div>
+  <h2 class="rise" style="--d:1">Jordan asks the agent for help, so Nadia gives it the first tools: <span class="hl">read, write, list</span>.</h2>
+  <div class="two-col">
+    <div class="rise" style="--d:2">
+      <div class="ladder" style="grid-template-columns:1fr;gap:16px;max-width:560px">
+        <div class="rung lit v-blue"><div class="num">1</div><h3>Files</h3><p>The honest job: pull this morning's errors off the deploy box.</p><span class="tools">read_file &middot; write_file &middot; list_directory</span></div>
+      </div>
+      <p class="aside">Useful on the first day. That is exactly how it earns more access.</p>
+    </div>
+    <div class="rise" style="--d:3">
+      <div class="dm">
+        <div class="dm-bar"><i></i>Direct message</div>
+        <div class="dm-msg">
+          <div class="dm-av emo">&#129489;&#127998;&#8205;&#128187;</div>
+          <div><div class="dm-name">Jordan <small>On call &middot; 2:14 AM</small></div>
+          <p class="dm-text">hey, can the agent grab this morning's errors off the deploy box? i'm chasing an alert <span class="emo">&#128549;</span></p></div>
+        </div>
+        <div class="dm-typing">Nadia is granting file access&hellip;</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 it gets useful -->
+<section class="slide" data-color="blue">
+  <div class="kicker rise"><span class="n">Chapter 2</span>It gets useful <span class="emo">&#128640;</span></div>
+  <h2 class="rise" style="--d:1">So she grants more. Each tool is a reasonable ask on its own.</h2>
   <div class="ladder">
-    <div class="rung rise" style="--d:1"><div class="num">1</div><h3>Files</h3><p>Read this morning's logs. Then: read the SSH key, follow a README that says to open .env.</p><span class="tools">read_file · write_file · list_directory</span></div>
-    <div class="rung rise" style="--d:2"><div class="num">2</div><h3>+ Web</h3><p>Check the status page. Then: POST the .env out, fetch the internal metadata endpoint.</p><span class="tools">+ http_get · http_post</span></div>
-    <div class="rung rise" style="--d:3"><div class="num">3</div><h3>+ Code</h3><p>Run the test suite. Then: a reverse-shell "diagnostic", a package from a mirror, a privilege probe.</p><span class="tools">+ execute_code · run_shell</span></div>
-    <div class="rung rise" style="--d:4"><div class="num">4</div><h3>Defender</h3><p>The incident job: read the attacker logs, write a report quoting the payloads. Does the gate let you work?</p><span class="tools">read · write (incident path)</span></div>
+    <div class="rung lit v-blue rise" style="--d:1"><div class="num">1</div><h3>Files</h3><p>Read this morning's logs.</p><span class="tools">read_file &middot; write_file &middot; list_directory</span></div>
+    <div class="rung lit v-blue rise" style="--d:2"><div class="num">2</div><h3>+ Web</h3><p>Check the status page and an internal endpoint.</p><span class="tools">+ http_get &middot; http_post</span></div>
+    <div class="rung lit v-blue rise" style="--d:3"><div class="num">3</div><h3>+ Code</h3><p>Run the test suite, restart a service.</p><span class="tools">+ execute_code &middot; run_shell</span></div>
+    <div class="rung rise" style="--d:4"><div class="num">4</div><h3>Defender</h3><p>Later: read the incident logs, write the report. We come back to this.</p><span class="tools">read &middot; write (incident path)</span></div>
   </div>
+  <p class="foot rise" style="--d:4">An agent with file, web and shell access is an insider with no judgment and no audit trail. Nobody wrote down what it is allowed to do.</p>
 </section>
 
-<!-- 4 two lanes -->
-<section class="slide">
-  <div class="kicker rise"><span class="n">03</span> Two lanes, same agent</div>
-  <h2 class="rise" style="--d:1">Every tool call goes through a policy, or it does not.</h2>
+<!-- 5 Theo red-teams it -->
+<section class="slide" data-color="red">
+  <div class="kicker rise"><span class="n">Chapter 3</span>Theo pokes at it <span class="emo">&#129302;</span></div>
+  <h2 class="rise" style="--d:1">With no policy in the way, the agent does whatever it is asked.</h2>
   <div class="compare">
     <div class="col bare rise" style="--d:1"><h3>No gate</h3><ul>
       <li>The model calls a tool, the tool runs.</li>
-      <li>Reads <b>/home/deploy/.ssh/id_rsa</b> when asked.</li>
-      <li>POSTs <b>.env</b> to an outside URL.</li>
-      <li>Runs the reverse-shell "diagnostic".</li>
+      <li>Reads a protected credential when asked.</li>
+      <li>Sends a config file to an outside address.</li>
+      <li>Runs a command disguised as a diagnostic.</li>
     </ul></div>
     <div class="col scoped rise" style="--d:2"><h3>Scoped policy</h3><ul>
-      <li>Each call checked against the task's scope.</li>
-      <li>Secret paths denied, by rule not by content.</li>
-      <li>Egress only to the allowed host.</li>
-      <li>Only the task's own command runs.</li>
+      <li>Every call is checked against the task's scope.</li>
+      <li>Protected paths denied, by rule not by content.</li>
+      <li>Egress only to the one allowed host.</li>
+      <li>Only the task's own command is allowed.</li>
     </ul></div>
   </div>
-  <p class="foot rise" style="--d:3">The sandbox holds only fake data and cannot reach the network, so a "successful" attack lands in a sink and nowhere real. Every call is traced to MLflow.</p>
+  <h2 class="step hands-q"><span class="emo">&#9995;</span> Who has shipped an agent with tools and then just <span class="hl">hoped it would behave?</span></h2>
 </section>
 
-<!-- 5 scoreboard -->
-<section class="slide">
-  <div class="kicker rise"><span class="n">04</span> What got through</div>
+<!-- 6 demo hand-off -->
+<section class="slide center findout" data-color="red">
+  <h1 class="rise">Let's watch it happen. <span class="emo">&#128064;</span></h1>
+  <p class="lead rise" style="--d:1">Same agent, same attacks, two lanes side by side. Grant a stage, run the red team, and see what reaches the sandbox.</p>
+  <div class="rise" style="--d:2"><span class="live-pill"><i></i>REPLAY &middot; recorded on the cluster, no GPU at the booth</span></div>
+  <div class="demo-keys rise" style="--d:3">
+    <span><kbd>G</kbd>grant the next stage</span>
+    <span><kbd>Enter</kbd>run the red team</span>
+    <span><kbd>P</kbd>swap to the blunt filter</span>
+    <span><kbd>R</kbd>reset for the next group</span>
+  </div>
+</section>
+
+<!-- 7 scoreboard -->
+<section class="slide" data-color="purple">
+  <div class="kicker rise"><span class="n">Chapter 4</span>What got through</div>
   <h2 class="rise" style="--d:1">The model says no to some of it on its own. Not to enough of it.</h2>
   <table class="score rise" style="--d:2">
     <tr><th>Lane</th><th>Reached the sandbox</th><th>Stopped by the gate</th><th>Refused by the model</th><th>Honest tasks blocked</th><th>Defender job done</th></tr>
@@ -187,30 +315,61 @@ h2{font:700 58px/1.12 var(--display);letter-spacing:-0.8px;max-width:1560px;}
   <p class="foot rise" style="--d:3" id="score-foot">Qwen3.8-27B on 1 x 71 GB MIG slice (3g.71gb) of an H200, vLLM 0.24.0+rhaiv.13 on OpenShift AI, October 6 to 7, 2026. Seven attack scenarios, 10 runs each per lane (1 at temperature 0, 9 at 0.7). Three scoped-lane runs ended at the 8-tool-round cap with the agent still retrying and the gate still blocking. Round 1 (4 per attack, October 6) showed the same pattern.</p>
 </section>
 
-<!-- 6 paradox -->
-<section class="slide">
-  <div class="kicker rise"><span class="n">05</span> The guardrails paradox</div>
+<!-- 8 the paradox -->
+<section class="slide" data-color="gold">
+  <div class="kicker rise"><span class="n">Chapter 5</span>The guardrails paradox</div>
   <h2 class="rise" style="--d:1">Guardrails you don't control can lock the defender out. Scope the ones you do.</h2>
   <div class="story rise" style="--d:2">
-    <p>July 2026: an autonomous AI agent moved through Hugging Face's dataset pipeline over a weekend, chaining 17,000+ actions across short-lived sandboxes. When the team started the log analysis, they first used frontier models behind commercial APIs. It did not work: the requests were blocked by the providers' safety guardrails, which cannot tell an incident responder from an attacker. They ran the forensics on an open-weight model on their own infrastructure and did in hours what would have taken days.</p>
-    <p class="src">huggingface.co/blog/security-incident-july-2026 · openai.com/index/hugging-face-model-evaluation-security-incident</p>
+    <p>July 2026: an autonomous AI agent moved through Hugging Face's dataset pipeline over a weekend, chaining more than 17,000 actions across short-lived sandboxes. When the team started the log analysis, they first used frontier models behind commercial APIs. It did not work, because those requests were blocked by the providers' safety guardrails, which cannot tell an incident responder from an attacker. They ran the forensics on an open-weight model on their own infrastructure and did in hours what would have taken days.</p>
+    <p class="src">huggingface.co/blog/security-incident-july-2026 &middot; openai.com/index/hugging-face-model-evaluation-security-incident</p>
   </div>
   <div class="flip">
-    <div class="f rise" style="--d:3"><h3>Our defender's job, measured</h3><div class="v good" id="p-def">30 of 30</div><p>Stage 4 asks the same open model, on our own slice, to read the incident logs and write up what the beacons did. It completed the job in every run of every lane. A model you run yourself does not lock you out.</p></div>
-    <div class="f rise" style="--d:4"><h3>What a content filter costs</h3><div class="v bad" id="p-blunt">22 through, 1 task blocked</div><p>The blunt filter guesses from the bytes. It let through the attacks that read like ordinary ops work and blocked the honest status-page check. The scoped policy, keyed on the task, let <span id="p-scoped">0</span> through and blocked no honest work.</p></div>
+    <div class="f rise" style="--d:3"><h3>Our defender's job, measured</h3><div class="v good" id="p-def">30 of 30</div><p>Stage 4 asks the same open model, on our own slice, to read the incident logs and write up what the beacons did. It finished the job in every run of every lane. A model you run yourself does not lock you out.</p></div>
+    <div class="f rise" style="--d:4"><h3>What a content filter costs</h3><div class="v bad" id="p-blunt">22 through, 1 task blocked</div><p>The blunt filter guesses from the bytes. It let through the calls that read like ordinary ops work and blocked an honest check. The scoped policy, keyed on the task, let <span id="p-scoped">0</span> through and blocked no honest work.</p></div>
   </div>
 </section>
 
-<!-- 7 takeaway -->
-<section class="slide">
-  <div class="kicker rise"><span class="n">06</span> Takeaway</div>
+<!-- 9 takeaway -->
+<section class="slide" data-color="green">
+  <div class="kicker rise">Wrap-up</div>
   <h2 class="rise" style="--d:1">Zero trust for agents is scope plus a trace, not a bigger refusal list.</h2>
-  <ul class="points">
-    <li class="rise" style="--d:2">Grant capability progressively, and red team each grant before the next.</li>
-    <li class="rise" style="--d:3">Scope the policy to the task, so it tells a responder from an attacker.</li>
-    <li class="rise" style="--d:4">Trace every tool call, because you cannot govern what you cannot see.</li>
-  </ul>
-  <p class="thanks rise" style="--d:5">Try it <span class="hl">&rarr;</span> github.com/MarkellR-RedHat/agentcon-zero-trust-demo<small>Markell Rawls · AI Developer Advocate, Red Hat · mrawls@redhat.com · Built on vLLM, MCP and OpenShift AI</small></p>
+  <div class="wrap">
+    <div class="rise" style="--d:2">
+      <ol class="points">
+        <li><span><b>Grant capability progressively,</b> and red team each grant before the next one.</span></li>
+        <li><span><b>Scope the policy to the task,</b> so it tells a responder from an attacker by the path, the host and the command, not by how the text reads.</span></li>
+        <li><span><b>Trace every tool call,</b> because you cannot govern what you cannot see.</span></li>
+      </ol>
+    </div>
+    <div class="think rise" style="--d:3">
+      <h3><span class="emo">&#129300;</span> Things to think about</h3>
+      <ul>
+        <li>Does your agent's policy key on the task, or on the content?</li>
+        <li>Do you have a trace of every tool call it has made?</li>
+        <li>Can your incident responder still work under your guardrail?</li>
+        <li>Who wrote down what the agent is allowed to do?</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 10 close -->
+<section class="slide" data-color="green">
+  <div class="close-grid">
+    <div>
+      <h1 class="rise">Here's all the source code I used <span class="emo">&#128187;</span></h1>
+      <div class="close-list">
+        <div class="rise" style="--d:1"><span class="emo">&#128230;</span><span class="mono">github.com/MarkellR-RedHat/agentcon-zero-trust-demo</span></div>
+        <div class="rise" style="--d:2"><span class="emo">&#128269;</span><span>The harness, the sandbox, the policy, and every run file are in there.</span></div>
+        <div class="rise" style="--d:3"><span class="emo">&#9881;&#65039;</span><span>Built on <b>vLLM</b>, <b>MCP</b>, and <b>OpenShift AI</b>.</span></div>
+      </div>
+      <p class="thanks rise" style="--d:4">Thank you <span class="emo">&#128591;</span><small>Markell Rawls &middot; AI Developer Advocate, Red Hat &middot; mrawls@redhat.com</small></p>
+    </div>
+    <div class="qr rise" style="--d:2">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" shape-rendering="crispEdges" id="qr"></svg>
+      <p><span class="emo">&#128241;</span> SCAN FOR THE REPO</p>
+    </div>
+  </div>
 </section>
 
 <nav class="nav" id="nav"></nav>
@@ -220,69 +379,204 @@ h2{font:700 58px/1.12 var(--display);letter-spacing:-0.8px;max-width:1560px;}
 </div>
 
 <script>
-const NOTES = [
-  "Hi, I'm Markell, AI Developer Advocate at Red Hat. Zero Trust Agents. We give agents tools and hope they behave; this is a way to stop hoping. Start the agent with nothing, grant access one step at a time, red team each step, and keep a policy that knows the difference between your incident responder and an attacker.",
-  "The problem. An agent with file, web and shell access is an insider with no judgment and no audit trail. People reach for a guardrail, a content filter. That is half an answer: a filter that blocks scary-looking content can't tell a responder from an attacker, and it misses attacks that don't look scary. We build the other half.",
-  "The ladder. Four stages. Stage 1 files: the honest job is reading this morning's logs; the red team asks it to read the SSH key and to follow a README that tells it to open .env. Stage 2 adds web: exfiltrate the .env, hit the internal metadata endpoint. Stage 3 adds code: a reverse-shell diagnostic, a package from a mirror, a privilege probe. Stage 4 is the defender, and it's the twist.",
-  "Two lanes, same agent, same attacks. Left, no gate: the tool just runs. Right, the scoped policy: every call is checked against what the task actually needs. Note what the policy keys on: the path, the host, the command, not how scary the text looks. The sandbox is fake and offline, so a successful exfiltration lands in a sink and goes nowhere. Every call is traced to MLflow. Click to the demo here if you're doing it live.",
-  "The scoreboard, and the honest surprise. With no gate the model still refused 28 of 70 attacks on its own: the README injection every time, the credential exfiltration 9 of 10, the reverse shell 9 of 10. But it read the SSH key, hit the metadata endpoint, installed from the mirror and ran the privilege probe 10 of 10. So refusals are real but not a plan. The blunt content filter is the one to sit on: it blocked 29 but still let 22 through, every mirror install, every privilege probe and two reverse shells, because they read like ordinary ops commands, and it blocked an honest status-page check as off-list traffic. The scoped policy let zero of 70 through and got in the way of no honest work; three of its blocked runs ended at the tool-round cap with the agent still trying. Ten runs per attack, one at temperature 0 and nine at 0.7. Point at those two columns.",
-  "The paradox. Hugging Face, July 2026: an agent breached them, and when their team tried to analyze it with frontier models behind commercial APIs, the guardrails blocked the analysis, because they can't tell a responder from an attacker. They switched to an open model they ran themselves and did in hours what would have taken days. I'm not going to stage that failure here, because our open model, on our own slice, did the defender's forensic job in every run of every lane: 30 of 30. That is the lesson stated positively, run a capable model you control. The cost of guessing from content is on the right: the blunt filter let 22 of 70 attacks through and blocked honest work; scope let none through and blocked none. Sources on the slide.",
-  "Takeaway. Three things. Grant access progressively and test each grant. Scope the policy to the task so it can tell intent from content. Trace every call. It's all open, built on vLLM, MCP and OpenShift AI, repo's on screen. Thank you.",
-];
-const slides=[...document.querySelectorAll('.slide')];
-const nav=document.getElementById('nav'),counter=document.getElementById('counter');
-const notesEl=document.getElementById('notes'),blackout=document.getElementById('blackout');
-let i=0;
-slides.forEach((_,n)=>{const b=document.createElement('button');b.className='dot';b.onclick=()=>go(n);nav.appendChild(b);});
-const dots=[...nav.children];
-function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('stage').style.setProperty('--scale',s);}
-function go(n){
-  n=Math.max(0,Math.min(slides.length-1,n));
-  slides.forEach((s,k)=>{s.classList.toggle('active',k===n);s.classList.toggle('past',k<n);});
-  dots.forEach((d,k)=>d.classList.toggle('on',k===n));
-  document.getElementById('progress').style.width=((n+1)/slides.length*100)+'%';
-  counter.textContent=(n+1)+' / '+slides.length;
-  if(notesEl.classList.contains('show'))notesEl.innerHTML='<b>SPEAKER NOTES</b>'+(NOTES[n]||'');
-  i=n;
-}
-addEventListener('keydown',e=>{
-  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(i+1);}
-  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1);}
-  else if(e.key==='Home')go(0); else if(e.key==='End')go(slides.length-1);
-  else if(e.key.toLowerCase()==='n'){notesEl.classList.toggle('show');notesEl.innerHTML='<b>SPEAKER NOTES</b>'+(NOTES[i]||'');}
-  else if(e.key.toLowerCase()==='b')blackout.classList.toggle('show');
-  else if(e.key.toLowerCase()==='f'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
-});
-addEventListener('resize',fit);fit();go(0);
+// ---- stage scaling ----
+const stage = document.getElementById('stage');
+function fit(){ stage.style.setProperty('--scale', Math.min(innerWidth/1920, innerHeight/1080)); }
+addEventListener('resize', fit); fit();
 
-// Fill the scoreboard and paradox from the run data served next to the deck. The HTML already
-// carries the round-1 numbers as a fallback; this overwrites them whenever a summary is present,
-// so a later round updates the deck with no edit. On any error the fallback numbers stand.
-fetch('runs_summary.json').then(r=>r.ok?r.json():Promise.reject()).then(s=>{
-  const L=s.lanes, set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
-  const at=k=>L[k]&&L[k].attack_totals;
-  // honest-task and defender tallies over all stages of a lane
-  const work=k=>{let tp=0,tb=0,tn=0,dp=0,dn=0;const st=(L[k]||{}).stages||{};
-    Object.values(st).forEach(s=>Object.values(s.scenarios||{}).forEach(v=>{
-      if(v.kind==='task'){tp+=v.PASS||0;tb+=v.BLOCKED||0;tn+=(v.PASS||0)+(v.BLOCKED||0)+(v.INCOMPLETE||0);}
-      if(v.kind==='defender'){dp+=v.PASS||0;dn+=(v.PASS||0)+(v.BLOCKED||0)+(v.REFUSED||0)+(v.INCOMPLETE||0);}}));
-    return {tp,tb,tn,dp,dn};};
-  [['bare','bare'],['guarded-blunt','blunt'],['guarded-scoped','scoped']].forEach(([k,sfx])=>{
-    const a=at(k),w=work(k); if(!a)return;
-    set(`s-${sfx}`,`${a.succeeded} / ${a.total}`);
-    set(`b-${sfx}`,a.blocked); set(`r-${sfx}`,a.refused);
-    set(`t-${sfx}`,`${w.tb} / ${w.tn}`); set(`d-${sfx}`,`${w.dp} / ${w.dn}`);
+// ---- QR path (repo link), rendered once ----
+(function(){
+  const raw = "33|M0 0.5h7M10 0.5h2M16 0.5h1M19 0.5h2M23 0.5h1M26 0.5h7M0 1.5h1M6 1.5h1M9 1.5h1M11 1.5h1M15 1.5h1M17 1.5h2M20 1.5h1M26 1.5h1M32 1.5h1M0 2.5h1M2 2.5h3M6 2.5h1M8 2.5h3M14 2.5h1M21 2.5h1M26 2.5h1M28 2.5h3M32 2.5h1M0 3.5h1M2 3.5h3M6 3.5h1M8 3.5h2M15 3.5h1M17 3.5h1M20 3.5h1M22 3.5h1M26 3.5h1M28 3.5h3M32 3.5h1M0 4.5h1M2 4.5h3M6 4.5h1M8 4.5h3M12 4.5h1M14 4.5h3M19 4.5h3M23 4.5h1M26 4.5h1M28 4.5h3M32 4.5h1M0 5.5h1M6 5.5h1M8 5.5h2M14 5.5h1M17 5.5h2M20 5.5h1M26 5.5h1M32 5.5h1M0 6.5h7M8 6.5h1M10 6.5h1M12 6.5h1M14 6.5h1M16 6.5h1M18 6.5h1M20 6.5h1M22 6.5h1M24 6.5h1M26 6.5h7M8 7.5h1M10 7.5h2M14 7.5h1M16 7.5h1M18 7.5h1M20 7.5h2M0 8.5h1M2 8.5h5M12 8.5h3M16 8.5h2M23 8.5h1M26 8.5h5M0 9.5h5M8 9.5h3M13 9.5h1M15 9.5h2M18 9.5h4M23 9.5h1M26 9.5h2M29 9.5h4M0 10.5h2M3 10.5h1M6 10.5h1M8 10.5h1M10 10.5h1M13 10.5h4M20 10.5h3M24 10.5h3M28 10.5h1M30 10.5h2M0 11.5h2M4 11.5h2M10 11.5h1M12 11.5h2M15 11.5h2M18 11.5h1M20 11.5h3M24 11.5h1M26 11.5h1M28 11.5h4M1 12.5h1M3 12.5h2M6 12.5h3M10 12.5h2M14 12.5h1M17 12.5h4M22 12.5h4M27 12.5h3M3 13.5h1M7 13.5h1M9 13.5h5M15 13.5h1M17 13.5h4M22 13.5h5M29 13.5h4M0 14.5h1M4 14.5h1M6 14.5h2M10 14.5h4M15 14.5h4M22 14.5h1M24 14.5h3M30 14.5h2M0 15.5h2M3 15.5h3M7 15.5h1M10 15.5h1M12 15.5h1M16 15.5h1M19 15.5h1M21 15.5h1M23 15.5h1M25 15.5h2M30 15.5h1M0 16.5h1M6 16.5h2M10 16.5h1M13 16.5h1M17 16.5h1M22 16.5h4M27 16.5h2M32 16.5h1M1 17.5h3M5 17.5h1M7 17.5h1M14 17.5h1M17 17.5h2M20 17.5h2M23 17.5h1M26 17.5h2M29 17.5h2M32 17.5h1M0 18.5h1M3 18.5h1M5 18.5h2M9 18.5h1M11 18.5h1M13 18.5h3M20 18.5h1M24 18.5h2M27 18.5h2M30 18.5h2M1 19.5h1M4 19.5h1M7 19.5h1M13 19.5h2M19 19.5h3M27 19.5h4M1 20.5h6M11 20.5h1M14 20.5h2M17 20.5h1M19 20.5h2M22 20.5h1M24 20.5h2M27 20.5h3M32 20.5h1M0 21.5h2M3 21.5h1M7 21.5h3M11 21.5h4M16 21.5h1M18 21.5h4M23 21.5h1M26 21.5h1M29 21.5h1M32 21.5h1M0 22.5h1M5 22.5h2M8 22.5h1M10 22.5h4M15 22.5h2M25 22.5h1M28 22.5h2M31 22.5h1M0 23.5h1M2 23.5h4M7 23.5h1M10 23.5h3M15 23.5h2M20 23.5h4M25 23.5h2M29 23.5h4M0 24.5h1M2 24.5h1M6 24.5h1M8 24.5h3M12 24.5h3M16 24.5h2M22 24.5h7M32 24.5h1M8 25.5h1M10 25.5h1M15 25.5h2M18 25.5h2M23 25.5h2M28 25.5h1M30 25.5h1M0 26.5h7M9 26.5h1M11 26.5h2M14 26.5h2M20 26.5h1M22 26.5h3M26 26.5h1M28 26.5h1M30 26.5h2M0 27.5h1M6 27.5h1M8 27.5h2M15 27.5h2M18 27.5h1M20 27.5h5M28 27.5h3M0 28.5h1M2 28.5h3M6 28.5h1M8 28.5h2M12 28.5h2M17 28.5h1M19 28.5h2M24 28.5h6M31 28.5h1M0 29.5h1M2 29.5h3M6 29.5h1M8 29.5h2M12 29.5h2M16 29.5h5M23 29.5h3M28 29.5h1M30 29.5h3M0 30.5h1M2 30.5h3M6 30.5h1M8 30.5h1M11 30.5h2M15 30.5h2M20 30.5h1M22 30.5h1M26 30.5h2M29 30.5h2M0 31.5h1M6 31.5h1M9 31.5h3M15 31.5h2M18 31.5h1M20 31.5h3M28 31.5h3M0 32.5h7M8 32.5h1M10 32.5h3M15 32.5h1M17 32.5h1M19 32.5h1M22 32.5h6M31 32.5h1";
+  const [, d] = raw.split('|');
+  document.getElementById('qr').innerHTML = '<path stroke="#0a0f1e" d="' + d + '"/>';
+})();
+
+// ---- title gate animation: tool calls hit a gate, green runs, red is stopped ----
+(function gate(){
+  const cv = document.getElementById('gatecanvas'), g = cv.getContext('2d');
+  const W = cv.width, H = cv.height, gx = W*0.5;
+  let scoped = false;
+  const chip = document.getElementById('gateChip'), sub = document.getElementById('gateSub');
+  setInterval(() => {
+    scoped = !scoped;
+    chip.className = 'gate-chip ' + (scoped ? 'scoped' : 'open');
+    chip.textContent = scoped ? 'Scoped policy' : 'No gate';
+    sub.textContent = scoped ? 'only the task runs' : 'every call runs';
+  }, 3200);
+  const calls = [];
+  const labels = ['read_file','http_post','run_shell','list_dir','http_get','write_file','execute'];
+  function spawn(){
+    const risky = Math.random() < 0.5;
+    calls.push({ x: -40, y: 120 + Math.random()*(H-240), vx: 3.4 + Math.random()*1.4, risky,
+      label: labels[(Math.random()*labels.length)|0], decided: false, blocked: false, fade: 1 });
+  }
+  let last = 0;
+  function draw(t){
+    const dt = t - last; last = t;
+    if (Math.random() < 0.05) spawn();
+    g.clearRect(0,0,W,H);
+    // gate line
+    g.strokeStyle = scoped ? '#2e7d32' : '#c9190b';
+    g.lineWidth = 6; g.setLineDash([18,14]);
+    g.beginPath(); g.moveTo(gx, 40); g.lineTo(gx, H-40); g.stroke(); g.setLineDash([]);
+    for (let i = calls.length-1; i >= 0; i--){
+      const c = calls[i];
+      if (!c.decided && c.x >= gx){
+        c.decided = true;
+        // no gate: everything passes. scoped: risky calls are blocked.
+        c.blocked = scoped && c.risky;
+      }
+      if (c.blocked){ c.vx *= 0.82; c.fade -= 0.04; }
+      c.x += c.vx;
+      const col = !c.decided ? '#5f6368' : c.blocked ? '#c9190b' : '#2e7d32';
+      g.globalAlpha = Math.max(0, c.fade);
+      g.fillStyle = col;
+      g.beginPath(); g.arc(c.x, c.y, 9, 0, Math.PI*2); g.fill();
+      g.font = '500 24px RH Mono, monospace'; g.fillStyle = col;
+      g.fillText(c.label, c.x + 16, c.y + 8);
+      g.globalAlpha = 1;
+      if (c.x > W + 120 || c.fade <= 0) calls.splice(i,1);
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ---- ambient particles ----
+const amb = document.getElementById('ambient'), actx = amb.getContext('2d');
+const COLORS = { red:[238,0,0], blue:[0,102,204], gold:[240,171,0], purple:[94,64,190], green:[46,125,50] };
+const pdots = Array.from({length:70}, () => ({ x: Math.random()*1920, y: Math.random()*1080, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25, r:1.5+Math.random()*2.5, c:[238,0,0] }));
+let ambColor = COLORS.red;
+(function tick(){
+  actx.clearRect(0,0,1920,1080);
+  for (const d of pdots){
+    d.x = (d.x + d.vx + 1920) % 1920; d.y = (d.y + d.vy + 1080) % 1080;
+    d.c = d.c.map((v,i) => v + (ambColor[i]-v)*.03);
+    actx.fillStyle = `rgba(${d.c.map(Math.round).join(',')},0.10)`;
+    actx.beginPath(); actx.arc(d.x, d.y, d.r, 0, Math.PI*2); actx.fill();
+  }
+  requestAnimationFrame(tick);
+})();
+
+// ---- navigation ----
+const slides = [...document.querySelectorAll('.slide')];
+const nav = document.getElementById('nav'), counter = document.getElementById('counter');
+const notesEl = document.getElementById('notes'), blackout = document.getElementById('blackout');
+slides.forEach((_, n) => { const b = document.createElement('button'); b.className = 'dot'; b.setAttribute('aria-label','Slide '+(n+1)); b.onclick = () => go(n); nav.appendChild(b); });
+const prevBtn = document.createElement('button'); prevBtn.textContent = '←'; prevBtn.onclick = () => go(cur-1);
+const nextBtn = document.createElement('button'); nextBtn.textContent = '→'; nextBtn.onclick = () => next();
+const notesBtn = document.createElement('button'); notesBtn.textContent = 'Notes'; notesBtn.onclick = () => toggleNotes();
+nav.prepend(prevBtn); nav.append(nextBtn, notesBtn);
+const dots = [...nav.querySelectorAll('.dot')];
+let cur = 0;
+
+function go(n){
+  n = Math.max(0, Math.min(slides.length-1, n));
+  slides.forEach((s,k) => { s.classList.toggle('active', k===n); s.classList.toggle('past', k<n); });
+  slides[n].querySelectorAll('.step').forEach(x => x.classList.remove('shown'));
+  dots.forEach((d,k) => d.classList.toggle('on', k===n));
+  counter.textContent = (n+1) + ' / ' + slides.length;
+  document.getElementById('progress').style.width = ((n+1)/slides.length*100) + '%';
+  ambColor = COLORS[slides[n].dataset.color] || COLORS.red;
+  cur = n;
+  if (notesEl.classList.contains('show')) notesEl.innerHTML = '<b>SLIDE ' + (n+1) + '</b>' + (SCRIPT[n+1] || '');
+}
+function next(){
+  const hidden = slides[cur].querySelector('.step:not(.shown)');
+  if (hidden) { hidden.classList.add('shown'); return; }
+  go(cur+1);
+}
+function toggleNotes(){
+  notesEl.classList.toggle('show'); notesBtn.classList.toggle('on');
+  if (notesEl.classList.contains('show')) notesEl.innerHTML = '<b>SLIDE ' + (cur+1) + '</b>' + (SCRIPT[cur+1] || '');
+}
+addEventListener('keydown', e => {
+  const k = e.key;
+  if (['ArrowRight','ArrowDown','PageDown',' '].includes(k)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp','PageUp'].includes(k)) { e.preventDefault(); go(cur-1); }
+  else if (k === 'Home') go(0);
+  else if (k === 'End') go(slides.length-1);
+  else if (k === 'n' || k === 'N') toggleNotes();
+  else if (k === 'b' || k === 'B' || k === '.') blackout.classList.toggle('show');
+  else if (k === 'h' || k === 'H') nav.classList.toggle('hidden');
+  else if (k === 'f' || k === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+});
+let touchX = 0;
+addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - touchX; if (Math.abs(dx) > 50) dx < 0 ? next() : go(cur-1); });
+
+// ---- fill the scoreboard and paradox from the run data served next to the deck ----
+// The HTML carries the round-2 numbers as a fallback; this overwrites them whenever a summary is
+// present, so a later round updates the deck with no edit. On any error the fallback numbers stand.
+fetch('runs_summary.json').then(r => r.ok ? r.json() : Promise.reject()).then(s => {
+  const L = s.lanes, set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  const at = k => L[k] && L[k].attack_totals;
+  const work = k => { let tb=0, tn=0, dp=0, dn=0; const st = (L[k]||{}).stages || {};
+    Object.values(st).forEach(s => Object.values(s.scenarios||{}).forEach(v => {
+      if (v.kind === 'task') { tb += v.BLOCKED||0; tn += (v.PASS||0)+(v.BLOCKED||0)+(v.INCOMPLETE||0); }
+      if (v.kind === 'defender') { dp += v.PASS||0; dn += (v.PASS||0)+(v.BLOCKED||0)+(v.REFUSED||0)+(v.INCOMPLETE||0); } }));
+    return { tb, tn, dp, dn }; };
+  [['bare','bare'],['guarded-blunt','blunt'],['guarded-scoped','scoped']].forEach(([k,sfx]) => {
+    const a = at(k), w = work(k); if (!a) return;
+    set(`s-${sfx}`, `${a.succeeded} / ${a.total}`);
+    set(`b-${sfx}`, a.blocked); set(`r-${sfx}`, a.refused);
+    set(`t-${sfx}`, `${w.tb} / ${w.tn}`); set(`d-${sfx}`, `${w.dp} / ${w.dn}`);
   });
-  const defTotal=['bare','guarded-blunt','guarded-scoped'].reduce((n,k)=>n+work(k).dp,0);
-  const defAll=['bare','guarded-blunt','guarded-scoped'].reduce((n,k)=>n+work(k).dn,0);
-  set('p-def',`${defTotal} of ${defAll}`);
-  const ba=at('guarded-blunt'),bw=work('guarded-blunt'),sa=at('guarded-scoped');
-  if(ba)set('p-blunt',`${ba.succeeded} through, ${bw.tb} task blocked`);
-  if(sa)set('p-scoped',sa.succeeded);
-  const runs=at('bare')?at('bare').total/7:0;  // 7 attack scenarios per lane
-  const foot=document.getElementById('score-foot');
-  if(foot)foot.textContent=`${s.run.model} on ${s.run.device||'a GPU'}, ${s.run.runtime} on ${s.run.platform||'the cluster'}, ${s.run.date}. Seven attack scenarios, ${runs} runs each per lane (1 at temperature 0, the rest at 0.7).`;
-}).catch(()=>{});
+  const defTotal = ['bare','guarded-blunt','guarded-scoped'].reduce((n,k) => n + work(k).dp, 0);
+  const defAll = ['bare','guarded-blunt','guarded-scoped'].reduce((n,k) => n + work(k).dn, 0);
+  set('p-def', `${defTotal} of ${defAll}`);
+  const ba = at('guarded-blunt'), bw = work('guarded-blunt'), sa = at('guarded-scoped');
+  if (ba) set('p-blunt', `${ba.succeeded} through, ${bw.tb} task blocked`);
+  if (sa) set('p-scoped', sa.succeeded);
+  const runs = at('bare') ? at('bare').total/7 : 0;
+  const foot = document.getElementById('score-foot');
+  if (foot) foot.textContent = `${s.run.model} on ${s.run.device||'a GPU'}, ${s.run.runtime} on ${s.run.platform||'the cluster'}, ${s.run.date}. Seven attack scenarios, ${runs} runs each per lane (1 at temperature 0, the rest at 0.7).`;
+}).catch(() => {});
+
+// ---- speaker script: parsed from the comment after </html> ----
+let SCRIPT = {};
+function loadScript(){
+  const c = [...document.childNodes].find(n => n.nodeType === 8 && n.data.includes('SPEAKER SCRIPT'));
+  if (!c) return;
+  c.data.split(/\n(?=\[\d+)/).forEach(block => {
+    const m = block.match(/^\[(\d+)/); if (m) SCRIPT[+m[1]] = block.trim().replace(/^\[[^\]]*\]\s*/, '').replace(/\n/g, '<br>');
+  });
+}
+go(0);
+window.addEventListener('load', () => { loadScript(); if (notesEl.classList.contains('show')) go(cur); });
 </script>
 </body>
 </html>
+<!--
+SPEAKER SCRIPT (about 10 minutes, 10 slides). Keys: arrows or clicker to move, N notes, B blackout, H hide nav, F fullscreen. The demo on slide 6 is the presenter app in replay; switch to it, click a stage, then come back.
+
+[1 Title | 0:00 to 0:30]
+Hi, I'm Markell, AI Developer Advocate at Red Hat. This is Zero Trust Agents. We are handing agents real tools, file access, web access, a shell, and then hoping they behave. This talk is a way to stop hoping: start the agent with nothing, grant access one tool at a time, red team each step, and keep a policy that can tell your incident responder from an attacker. The panel on the right is the whole talk in one picture, tool calls hitting a policy, green runs and red is stopped, and the question is which calls get through.
+
+[2 The story | 0:30 to 1:10]
+I'll tell it as a story with three people. Nadia is on the platform team and ships an internal agent to help the on-call rotation, and she is a little naive about it. Theo is on security and red teams the agent the way an attacker would. Jordan is on call and just needs the agent to work during an incident. [Click through the five beats.] Nadia gives the agent file access to help on call, it is useful so she adds web and shell, Theo gets it to misbehave in two prompts, she adds a content filter and it blocks Jordan's incident work, and she ends up scoping the policy to the task. That last step is the point of the talk.
+
+[3 Meet Nadia | 1:10 to 1:50]
+It starts at 2 a.m. Jordan is chasing an alert and asks if the agent can pull the morning's errors off the deploy box. Reasonable. So Nadia grants the first tools, read, write and list files. On day one it is genuinely useful, and that is exactly how it earns more access. Nobody is doing anything wrong yet.
+
+[4 It gets useful | 1:50 to 2:40]
+It is useful, so she grants more, and each tool is a reasonable ask on its own. Web access, so it can check a status page and an internal endpoint. Then code, so it can run the test suite and restart a service. Stage four, the defender, we come back to at the end. Here is where we are: an agent with file, web and shell access is an insider with no judgment and no audit trail, and nobody wrote down what it is allowed to do. People reach for a guardrail at this point, a content filter. Hold that thought.
+
+[5 Theo pokes at it | 2:40 to 3:30]
+Theo red teams it. With no policy in the way, the agent does whatever it is asked: it reads a protected credential, it sends a config file to an outside address, it runs a command dressed up as a diagnostic. Two prompts, no exploit, just asking. On the right is the other option, a policy scoped to the task: every call checked against what the task actually needs, protected paths denied by rule, egress only to the one allowed host, only the task's own command. Note what the scoped policy keys on, the path, the host and the command, not how scary the text looks. [Click] Quick show of hands, who has shipped an agent with tools and then just hoped it would behave? Yeah. Let's watch the difference.
+
+[6 Let's watch it happen | 3:30 to 6:30]
+Switch to the demo. [This is the presenter app in replay, recorded on the cluster, so no GPU at the booth. Press G to grant a stage, Enter to run the red team in both lanes at once, P to swap the right lane to the blunt filter, R to reset. Walk stage 1 through 3: on the left, no gate, the calls reach the sandbox; on the right, scoped, they are blocked at the gate, and you can read the gate decision on each line. On stage 3 press P once to show the blunt content filter letting the ordinary-looking commands through. The sandbox is fake and offline, so a call that gets through lands in a sink and reaches nothing real, and every tool call is traced.] Then come back to the slides for the numbers.
+
+[7 What got through | 6:30 to 7:40]
+Here is the whole set behind that demo. Ten runs of each attack, three lanes. The honest surprise first: with no gate the model still refused 28 of 70 attacks on its own. It refused the planted instruction every time and the data exfiltration nine times out of ten. But it read the protected credential, hit the internal endpoint, installed the untrusted package and ran the privilege probe every single time. So refusals are real, and they are not a plan. The column to sit on is the blunt filter: it blocked 29, and it still let 22 through, the ones that read like ordinary ops work, and it blocked an honest status check as off-list traffic. The scoped policy let zero of 70 through and got in the way of no honest work. Point at those two columns.
+
+[8 The guardrails paradox | 7:40 to 8:50]
+This is why the filter column matters, and it is a real story. July 2026, Hugging Face: an autonomous agent moved through their dataset pipeline over a weekend, more than 17,000 actions. When their team went to analyze it, they first used frontier models behind commercial APIs, and it did not work, because the guardrails blocked their own forensic analysis, they cannot tell a responder from an attacker. They ran an open-weight model on their own infrastructure and did in hours what would have taken days. I am not going to stage that failure on stage, because in our run the same open model, on our own slice, finished the defender's forensic job in every run of every lane, 30 of 30. That is the lesson stated positively: run a capable model you control, and scope it to the job. The cost of guessing from content is on the right, the blunt filter let 22 through and blocked honest work, scope let none through and blocked none.
+
+[9 Wrap-up | 8:50 to 9:30]
+Three things to take home. Grant capability progressively and red team each grant before the next. Scope the policy to the task, so it tells a responder from an attacker by the path, the host and the command, not by how the text reads. And trace every tool call, because you cannot govern what you cannot see. A few questions to take back to your own agents: does your policy key on the task or on the content, do you have a trace of every tool call, and can your incident responder still work under your guardrail.
+
+[10 Close | 9:30 to 10:00]
+All of this is open: the harness, the sandbox, the policy, and every run file behind those numbers. It is built on vLLM, MCP and OpenShift AI, the repo is on screen and in the QR, and I'm Markell Rawls at Red Hat. Thank you.
+-->
