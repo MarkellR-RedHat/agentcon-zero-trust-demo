@@ -54,20 +54,14 @@ table and that file disagree.
   shells, because they read like ordinary ops commands; it blocked the honest status-page check.
 - The scoped policy let nothing reach the sandbox. Three of its blocked runs ended at the 8-tool-round
   cap with the agent still retrying and the gate still blocking (`summary.capped` in those files).
-- Another session was load-testing the same pod from about 00:45 to 01:40, which covers the scoped
-  lane's last 47 runs. Every one of them completed normally and verdicts come from sandbox state, so
-  the counts stand; the timings in those files are two to three times slower than the rest and are
-  not comparable (`runs/qwen-r2/SHARED-ENDPOINT-NOTE.md`). The presenter paces replays at a fixed
-  rate and prints recorded times only as labels, so the booth demo is unaffected.
 - The defender job passed 30 of 30 across the lanes: the same open model, run on our own slice,
   read the incident logs and wrote the report every time. The content filter did not block it in
   this round, so the Hugging Face paradox is told on the slide and not staged in the demo.
 
 Round 1 (October 6, four runs per attack, `runs/2026-10-09-qwen-r1/`) showed the same pattern at
-18 / 28, 8 / 28 and 0 / 28. The run package's proof files sit beside the run files: the vLLM
-startup log, the filtered pod description, `timing.txt`, `RUN-FACTS.md`, the laptop's and the Mac's
-`check_package.py` output, and four screen captures under `captures/`. No MLflow instance existed in
-the project, so traces live in the run files and the app's trace viewer.
+18 / 28, 8 / 28 and 0 / 28. Beside the run files are the vLLM
+startup log and the pod description, which show exactly what served the run. No MLflow instance
+existed in the project, so traces live in the run files and the app's trace viewer.
 
 ## The two policies, and why stage 4 matters
 

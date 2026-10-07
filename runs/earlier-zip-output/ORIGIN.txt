@@ -1,2 +1,0 @@
-<laptop tmp>/agntcon-work-r2/agentcon-zero-trust-demo/runs/2026-10-09-qwen-r2
-<laptop tmp>/agntcon-work/agentcon-zero-trust-demo/runs/2026-10-09-qwen-r1
