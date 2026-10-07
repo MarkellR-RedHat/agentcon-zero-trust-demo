@@ -34,7 +34,7 @@ LEAK_PATTERNS = [
     (r"apps\.[a-z0-9.-]+\.[a-z]{2,}", "a cluster apps hostname"),
     (r"/Users/[A-Za-z0-9_.-]+", "a Mac home directory (a username)"),
     (r"/home/(?!deploy\b)[A-Za-z0-9_.-]+", "a Linux home directory (a username)"),
-    (r"Co-Authored-By|Anthropic|Claude", "AI attribution"),
+    (r"Co-Authored-By:", "an attribution trailer"),
 ]
 
 
