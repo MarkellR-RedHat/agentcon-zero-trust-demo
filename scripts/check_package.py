@@ -198,7 +198,7 @@ def main() -> int:
     check(prior.is_file(), "PRIOR-STATE.txt present (what the earlier zip had running or written)")
     if prior.is_file():
         ptxt = prior.read_text()
-        check(ptxt.startswith("PRIOR-STATE written") and "isvc" in ptxt.lower(), "PRIOR-STATE.txt starts with its marker and ends with the isvc state")
+        check(ptxt.startswith("PRIOR-STATE written") and "--- model service state:" in ptxt, "PRIOR-STATE.txt starts with its marker and reaches the model service state heading")
     earlier = root.parent / "earlier-zip-output"
     check(earlier.is_dir(), "runs/earlier-zip-output/ present next to this folder (may be empty)")
     if earlier.is_dir():
