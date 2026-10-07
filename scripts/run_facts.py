@@ -36,7 +36,7 @@ def git_head() -> str:
 
 def main(runs_dir: str) -> int:
     root = Path(runs_dir)
-    files = sorted(f for f in root.rglob("*.json") if f.name != "runs_summary.json")
+    files = sorted(f for lane in LANES for f in root.glob(f"{lane}/stage*/*.json"))
     records = [json.loads(f.read_text()) for f in files]
     if not records:
         print("no run files found", file=sys.stderr)

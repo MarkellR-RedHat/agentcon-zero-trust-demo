@@ -69,7 +69,9 @@ def main() -> int:
     # 1. file counts, exactly
     want = expected_files(args.repeat)
     total_want = sum(want.values()) * len(LANES)
-    files = [f for f in root.rglob("*.json") if f.name != "runs_summary.json"]
+    # a run file lives at <lane>/stage<N>/<scenario>_t<temp>_r<k>.json; other JSON in the folder (the pod
+    # description, the smoke-test answer, runs_summary.json) is proof around the runs, not a run
+    files = sorted(f for lane in LANES for f in root.glob(f"{lane}/stage*/*.json"))
     check(len(files) == total_want, f"{len(files)} run files (expected exactly {total_want})")
     for lane in LANES:
         for stage, n in want.items():
