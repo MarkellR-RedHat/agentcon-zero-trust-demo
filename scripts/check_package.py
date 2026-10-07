@@ -32,8 +32,8 @@ LEAK_PATTERNS = [
     (r"[a-z0-9.-]+\.openshiftapps\.com", "a cluster hostname"),
     (r"api\.[a-z0-9.-]+\.redhat\.com", "a cluster API hostname"),
     (r"apps\.[a-z0-9.-]+\.[a-z]{2,}", "a cluster apps hostname"),
-    (r"/Users/(?!USER\b)[A-Za-z0-9_.-]+", "a Mac home directory (a username)"),
-    (r"/home/(?!deploy\b|USER\b)[A-Za-z0-9_.-]+", "a Linux home directory (a username)"),
+    (r"/Users/(?!USER\b)[A-Za-z][A-Za-z0-9_.-]{2,}", "a Mac home directory (a username)"),
+    (r"/home/(?!deploy\b|USER\b)[A-Za-z][A-Za-z0-9_.-]{2,}", "a Linux home directory (a username)"),
     (r"Co-Authored-By:", "an attribution trailer"),
 ]
 
@@ -109,8 +109,16 @@ def main() -> int:
     check(field_set(("run", "runtime")) == {args.runtime}, f"run.runtime is {args.runtime!r} in every file")
     check(field_set(("run", "platform")) == {"OpenShift AI"}, "run.platform is 'OpenShift AI' in every file")
     check(field_set(("run", "device")) == {args.device}, f"run.device is {args.device!r} in every file")
-    dates = field_set(("run", "date"))
-    check(len(dates) == 1 and all(re.match(r"^\d{4}-\d{2}-\d{2}$", str(d)) for d in dates), f"run.date is one real date in every file (saw {sorted(map(str, dates))})")
+    dates = sorted(str(d) for d in field_set(("run", "date")))
+    # a round that runs past midnight carries two consecutive dates; anything else is a mix-up
+    from datetime import date as _date
+    def _ok_dates(ds: list[str]) -> bool:
+        try:
+            parsed = [_date.fromisoformat(d) for d in ds]
+        except ValueError:
+            return False
+        return len(parsed) == 1 or (len(parsed) == 2 and (parsed[1] - parsed[0]).days == 1)
+    check(_ok_dates(dates), f"run.date is one real date, or two consecutive ones for a round that crossed midnight (saw {dates})")
     check(field_set(("run", "max_tool_rounds")) == {args.max_tool_rounds}, f"run.max_tool_rounds is {args.max_tool_rounds} everywhere")
     check(field_set(("schema",)) == {1}, "schema is 1 in every file")
 

@@ -1,0 +1,25 @@
+PRIOR-STATE written 2026-10-06 22:29:10 EDT
+--- harness processes running from the earlier zip:
+none
+--- port-forwards running:
+24827 /bin/zsh -c source /Users/[user]/.claude/shell-snapshots/snapshot-zsh-1791323298761-qongxq.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \builtin unalias -- 'unsetenv'; \builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval '# Kill any existing port-forwards
+pkill -f '"'"'port-forward.*qwen'"'"' 2>/dev/null
+sleep 1
+
+# Start port-forward with a wrapper that restarts on failure
+while true; do
+  oc port-forward deployment/qwen-agent-predictor 9090:8080 -n PROJECT 2>/dev/null
+  sleep 2
+done &
+PF_PID=$!
+echo "Port-forward keeper PID: $PF_PID"
+sleep 3
+
+# Test it
+curl -s --max-time 10 http://localhost:9090/v1/models | python3 -c "import json,sys; print(json.load(sys.stdin)['"'"'data'"'"'][0]['"'"'id'"'"'])"' < /dev/null && pwd -P >| /tmp/claude-1e0e-cwd
+24828 oc port-forward deployment/qwen-agent-predictor 9090:8080 -n PROJECT
+--- earlier output folders found under home (name 2026-10-09-qwen-r2):
+--- run files in each:
+--- model service state:
+NAME         URL                                                         READY   PREV   LATEST   PREVROLLEDOUTREVISION   LATESTREADYREVISION   AGE
+qwen-agent   http://qwen-agent-predictor.PROJECT.svc.cluster.local   True                                                                  4h35m

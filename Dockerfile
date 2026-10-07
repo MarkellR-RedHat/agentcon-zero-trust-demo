@@ -12,6 +12,6 @@ COPY static ./static
 COPY runs ./runs
 COPY scripts ./scripts
 
-ENV RUNS_DIR=runs/2026-10-09-qwen-r1
+ENV RUNS_DIR=runs/qwen-r2
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

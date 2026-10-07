@@ -1,5 +1,5 @@
 PY = .venv/bin/python
-RUNS_DIR ?= runs/2026-10-09-qwen-r1
+RUNS_DIR ?= runs/qwen-r2
 
 setup:
 	python3 -m venv .venv

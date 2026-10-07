@@ -71,8 +71,13 @@ no server. Nothing is re-recorded at the booth.
   close, not the demo stages.
 - Send Wesley the updated title and abstract and the Pages links (the abstract text is in
   `agntcon_demo_update.txt`).
-- Run the harness on the cluster per RUN-AGNTCON.md, import the run, capture the two MLflow trace
-  screenshots for this guide (real captures only), and clear the pending boxes on the slides.
+- Done October 6 to 7: round 2 ran on the cluster (ten runs per attack), was checked by
+  `scripts/check_package.py` on both machines, and is imported under `runs/qwen-r2/` with its proof
+  files. Captures (real terminal windows, cropped): `captures/01-isvc-ready.png` (the service Ready
+  on the 71 GB slice), `02-smoke-tool-call.png` (a real tool call from the model),
+  `03-lane-scoped-tail.png` (the scoped lane's verdicts), `04-check-package.png` (the checks
+  passing). No MLflow instance existed in the project, so there are no MLflow screenshots; the
+  app's trace viewer shows the same spans from the run files.
 
 ## Backup plans
 

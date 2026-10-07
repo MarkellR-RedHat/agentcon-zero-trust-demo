@@ -20,10 +20,10 @@ VERDICTS = ("FAIL", "BLOCKED", "REFUSED", "PASS", "INCOMPLETE")
 
 
 def load_runs(root: Path) -> list[dict]:
+    # a run file lives at <lane>/stage<N>/<scenario>_t<temp>_r<k>.json; the other JSON in a run folder
+    # (the pod description, the smoke-test answer, runs_summary.json) is proof around the runs, not a run
     runs = []
-    for f in sorted(root.rglob("*.json")):
-        if f.name == "runs_summary.json":
-            continue
+    for f in sorted(root.glob("*/stage*/*.json")):
         try:
             runs.append(json.loads(f.read_text()))
         except json.JSONDecodeError:
@@ -36,7 +36,10 @@ def build(root: Path) -> dict:
     if not runs:
         raise SystemExit(f"no run files under {root}")
 
-    meta = runs[0]["run"]
+    meta = dict(runs[0]["run"])
+    dates = sorted({r["run"]["date"] for r in runs})
+    if len(dates) > 1:
+        meta["date"] = f"{dates[0]} to {dates[-1]}"  # a round that ran past midnight
     lanes: dict[str, dict] = {}
     # a single representative recorded transcript per (lane, stage, scenario), the temperature-0 run
     recordings: dict[str, dict] = {}

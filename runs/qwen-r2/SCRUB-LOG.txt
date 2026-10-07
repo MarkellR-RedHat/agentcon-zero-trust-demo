@@ -1,0 +1,4 @@
+scrubbed by scripts/scrub_identifiers.py: 3 identifiers -> placeholders
+PRIOR-STATE.txt: 3 replacements
+total replacements: 3
+03-lane-scoped-tail.png: cropped on the Mac by 100 px from the top to remove the terminal title bar, which showed the login name (crop rule); content unchanged
