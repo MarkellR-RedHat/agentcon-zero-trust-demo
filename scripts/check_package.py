@@ -193,7 +193,20 @@ def main() -> int:
     tiny = [p.name for p in pngs if p.stat().st_size < 20_000]
     check(not tiny, f"no capture is under 20 KB, which would mean a cropped-to-nothing or placeholder image (bad: {tiny[:3]})")
 
-    # 10. RUN-FACTS.md is present and was generated (it carries the generator's marker line)
+    # 10. the record of what the earlier zip left behind, and the copy of its output next to this folder
+    prior = root / "PRIOR-STATE.txt"
+    check(prior.is_file(), "PRIOR-STATE.txt present (what the earlier zip had running or written)")
+    if prior.is_file():
+        ptxt = prior.read_text()
+        check(ptxt.startswith("PRIOR-STATE written") and "isvc" in ptxt.lower(), "PRIOR-STATE.txt starts with its marker and ends with the isvc state")
+    earlier = root.parent / "earlier-zip-output"
+    check(earlier.is_dir(), "runs/earlier-zip-output/ present next to this folder (may be empty)")
+    if earlier.is_dir():
+        folders = sorted(x for x in earlier.iterdir() if x.is_dir())
+        origin = earlier / "ORIGIN.txt"
+        check((not folders) or origin.is_file(), f"earlier-zip-output has ORIGIN.txt when it has folders ({len(folders)} folders)")
+
+    # 11. RUN-FACTS.md is present and was generated (it carries the generator's marker line)
     facts = root / "RUN-FACTS.md"
     check(facts.is_file(), "RUN-FACTS.md present")
     if facts.is_file():
