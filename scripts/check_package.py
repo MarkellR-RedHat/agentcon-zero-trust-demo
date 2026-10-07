@@ -161,10 +161,12 @@ def main() -> int:
         check(bool(re.search(r"Available KV cache memory", text)), "startup log shows the KV cache size")
 
     # 7. the pod description proves the MIG slice
-    pod = root / "qwen-agent-pod.yaml"
-    check(pod.is_file(), "pod description present: qwen-agent-pod.yaml")
+    pod = root / "qwen-agent-pod.json"
+    check(pod.is_file(), "pod description present: qwen-agent-pod.json")
     if pod.is_file():
-        check("nvidia.com/mig-3g.71gb" in pod.read_text(), "pod description requests nvidia.com/mig-3g.71gb")
+        ptext = pod.read_text()
+        check("nvidia.com/mig-3g.71gb" in ptext, "pod description requests nvidia.com/mig-3g.71gb")
+        check(not re.search(r'"?(nodeName|hostIP|podIP)"?\s*:', ptext), "pod description carries no nodeName, hostIP or podIP")
 
     # 8. nothing private in any text file, and no attribution
     leaks = []
@@ -183,6 +185,9 @@ def main() -> int:
     check(caps.is_dir() and len(pngs) >= 1, f"captures/ folder present with PNG files ({len(pngs)} found)")
     not_png = [p.name for p in pngs if p.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n"]
     check(not not_png, f"every .png in captures/ is a real PNG file (bad: {not_png[:3]})")
+    named = ["01-isvc-ready.png", "02-smoke-tool-call.png", "03-lane-scoped-tail.png", "04-check-package.png"]
+    missing = [n for n in named if not (caps / n).is_file()]
+    check(not missing, f"the four required captures are present by name (missing: {missing})")
     tiny = [p.name for p in pngs if p.stat().st_size < 20_000]
     check(not tiny, f"no capture is under 20 KB, which would mean a cropped-to-nothing or placeholder image (bad: {tiny[:3]})")
 

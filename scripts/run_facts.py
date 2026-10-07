@@ -4,7 +4,7 @@
     python scripts/run_facts.py runs/qwen-r2
 
 Reads the run records, the vLLM startup log (qwen-agent-startup.txt), the pod description
-(qwen-agent-pod.yaml) and `git rev-parse HEAD` of the checkout it runs in, and writes
+(qwen-agent-pod.json) and `git rev-parse HEAD` of the checkout it runs in, and writes
 <runs_dir>/RUN-FACTS.md. The only free text allowed in that file is the "Did not go as written"
 section, and each line there must point at BLOCKED.md.
 """
@@ -110,17 +110,17 @@ def main(runs_dir: str) -> int:
     else:
         lines.append("- qwen-agent-startup.txt: MISSING")
     lines += ["", "## From the pod description", ""]
-    pod = root / "qwen-agent-pod.yaml"
+    pod = root / "qwen-agent-pod.json"
     if pod.is_file():
         ptext = pod.read_text()
-        mig = re.search(r"nvidia\.com/mig-[a-z0-9.]+:\s*\"?\d+\"?", ptext)
+        mig = re.search(r"nvidia\.com/mig-[a-z0-9.]+\"?:\s*\"?\d+\"?", ptext)
         img = re.search(r"image:\s*(\S+)", ptext)
-        node = "present" if re.search(r"^\s*nodeName:", ptext, re.M) else "absent"
+        node = "present" if re.search(r"\"?nodeName\"?\s*:", ptext) else "absent"
         lines += [f"- GPU resource: {mig.group(0) if mig else 'NOT FOUND'}",
                   f"- image: {img.group(1) if img else 'NOT FOUND'}",
                   f"- nodeName line: {node} (must be absent; it names a cluster host)"]
     else:
-        lines.append("- qwen-agent-pod.yaml: MISSING")
+        lines.append("- qwen-agent-pod.json: MISSING")
     lines += ["", "## From git", "", f"- harness commit (git rev-parse HEAD in the checkout that ran): {git_head()}", ""]
     lines += [
         "## Did not go as written",
