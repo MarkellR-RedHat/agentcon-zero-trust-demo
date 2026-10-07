@@ -21,6 +21,7 @@
             <button class="tab is-active" data-scene="stages"><kbd>1</kbd>Red team</button>
             <button class="tab" data-scene="score"><kbd>2</kbd>Scoreboard</button>
             <button class="tab" data-scene="paradox"><kbd>3</kbd>The paradox</button>
+            <button class="tab" data-scene="method"><kbd>4</kbd>Method</button>
         </nav>
         <div class="controls">
             <span class="mode" id="modeBadge"><i></i><span>Replay</span></span>
@@ -52,9 +53,16 @@
         <div class="paradox" id="paradox"></div>
     </section>
 
+    <!-- scene 4: method -->
+    <section class="scene" id="scene-method">
+        <h2 class="scene-title">Method</h2>
+        <p class="scene-sub">What ran, where, how many times, and how a verdict is decided. Every line is read from the run data.</p>
+        <div class="method" id="method"></div>
+    </section>
+
     <footer class="bottom">
         <span id="footLeft">AGNTCon + MCPCon North America 2026 &middot; San Jose</span>
-        <span id="footRight"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> scenes &middot; <kbd>G</kbd> grant &middot; <kbd>Enter</kbd> red team &middot; <kbd>P</kbd> policy &middot; <kbd>R</kbd> reset &middot; <kbd>T</kbd> theme</span>
+        <span id="footRight"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> scenes &middot; <kbd>G</kbd> grant &middot; <kbd>Enter</kbd> red team &middot; <kbd>P</kbd> policy &middot; <kbd>R</kbd> reset &middot; <kbd>T</kbd> theme</span>
     </footer>
 
     <div class="synthetic-banner" id="syntheticBanner" hidden>SYNTHETIC DATA &middot; placeholder until the Qwen run is imported</div>
