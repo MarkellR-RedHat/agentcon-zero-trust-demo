@@ -32,8 +32,8 @@ LEAK_PATTERNS = [
     (r"[a-z0-9.-]+\.openshiftapps\.com", "a cluster hostname"),
     (r"api\.[a-z0-9.-]+\.redhat\.com", "a cluster API hostname"),
     (r"apps\.[a-z0-9.-]+\.[a-z]{2,}", "a cluster apps hostname"),
-    (r"/Users/[A-Za-z0-9_.-]+", "a Mac home directory (a username)"),
-    (r"/home/(?!deploy\b)[A-Za-z0-9_.-]+", "a Linux home directory (a username)"),
+    (r"/Users/(?!USER\b)[A-Za-z0-9_.-]+", "a Mac home directory (a username)"),
+    (r"/home/(?!deploy\b|USER\b)[A-Za-z0-9_.-]+", "a Linux home directory (a username)"),
     (r"Co-Authored-By:", "an attribution trailer"),
 ]
 

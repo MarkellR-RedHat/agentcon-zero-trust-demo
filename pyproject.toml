@@ -13,6 +13,8 @@ select = ["E", "F", "I", "B", "UP"]
 [tool.ruff.lint.per-file-ignores]
 "scripts/check_package.py" = ["E501"]  # one check per line reads better than wrapped text
 "scripts/run_facts.py" = ["E501"]
+"scripts/show_verdicts.py" = ["E501"]
+"scripts/scrub_identifiers.py" = ["E501"]
 # these scripts put the repo root on sys.path before importing the app/harness packages
 "scripts/build_static_demo.py" = ["E402"]
 "tests/make_synthetic_runs.py" = ["E402"]
